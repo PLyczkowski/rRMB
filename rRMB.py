@@ -43,6 +43,8 @@ class rRMB(bpy.types.Menu):
         #Menus in All Modes
         
         layout.operator("view3d.cursor3d", text="Place 3d Cursor", icon="CURSOR")
+        #layout.operator("view3d.rcursor3d", text="Place 3d Cursor", icon="CURSOR")
+        
         
         layout.menu("VIEW3D_MT_rmovecursor")
         
@@ -202,9 +204,31 @@ class VIEW3D_MT_robject(bpy.types.Menu):
         
         layout = self.layout
         
+#------------------- OPERATORS ------------------------------     
+
+class rPlace3DCursor(bpy.types.Operator):
+    
+    bl_idname = "view3d.rcursor3d"
+    bl_label = "rCursor3D"
+    bl_description = "rCursor3D"
+    bl_register = True
+
+    @classmethod
+    def poll(cls, context):
+        return True
+
+    def execute(self, context):
+        
+        #TODO A way to set the 3d cursor, probably according to provided 2d coordinates.
+        #bpy.ops.view3d.cursor3d()
+        
+        return {'FINISHED'}
+        
 #------------------- REGISTER ------------------------------     
 
 def register():
+    
+    bpy.utils.register_class(rPlace3DCursor)
     bpy.utils.register_module(__name__)
     
     wm = bpy.context.window_manager
@@ -216,6 +240,8 @@ def register():
         kmi = km.keymap_items.new('view3d.cursor3d', 'ACTIONMOUSE', 'PRESS', alt=True)
 
 def unregister():
+    
+    bpy.utils.unregister_class(rPlace3DCursor)
     bpy.utils.unregister_(__name__)
     
     wm = bpy.context.window_manager
