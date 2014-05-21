@@ -28,8 +28,6 @@ bl_info = {
     "category": "3D View"}
 
 import bpy
-from bpy import *
-
 
 class rRMB(bpy.types.Menu):
     bl_label = ""
