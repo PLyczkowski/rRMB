@@ -73,11 +73,11 @@ class rRMB(bpy.types.Menu):
             
             layout.menu("VIEW3D_MT_uv_map", text="Unwrap")
             
-        elif obj:
+        elif mode_string == 'OBJECT':
             
-            #Object Mode
+            #Object Mode with Active Object
             
-            if mode_string == 'OBJECT':
+            if obj:
                 
                 layout.separator()
                 
@@ -131,7 +131,13 @@ class rRMB(bpy.types.Menu):
 
                 #layout.separator()
                 
+            else:
                 
+                #Object Mode without Active Object
+                
+                layout.separator()
+                
+                layout.menu("VIEW3D_MT_object_showhide")
         
 class VIEW3D_MT_robjecttransform(bpy.types.Menu):
     bl_context = "objectmode"
