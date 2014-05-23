@@ -62,6 +62,8 @@ class rRMB(bpy.types.Menu):
             
             layout.menu("VIEW3D_MT_edit_mesh_specials")
             
+            layout.menu("VIEW3D_MT_edit_mesh_delete")
+            
             layout.separator()
 
             layout.menu("VIEW3D_MT_edit_mesh_showhide")
@@ -74,6 +76,10 @@ class rRMB(bpy.types.Menu):
             layout.separator()
             
             layout.menu("VIEW3D_MT_uv_map", text="Unwrap")
+            
+            layout.separator()
+            
+            layout.operator("object.editmode_toggle", text="Exit Edit Mode")
             
         elif mode_string == 'OBJECT':
             
@@ -122,6 +128,10 @@ class rRMB(bpy.types.Menu):
                 
                 layout.menu("VIEW3D_MT_object_track")
                 layout.menu("VIEW3D_MT_object_constraints")
+                
+                layout.separator()
+                layout.operator("object.editmode_toggle", text="Enter Edit Mode",
+                icon='EDITMODE_HLT')
 
                 #layout.separator()
 
