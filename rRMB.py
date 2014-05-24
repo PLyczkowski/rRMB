@@ -54,32 +54,90 @@ class rRMB(bpy.types.Menu):
             
             #Edit Mode
             
-            layout.separator()
+            if edit_object.type.lower() == "mesh":
+                
+                #Mesh
             
-            layout.menu("VIEW3D_MT_edit_mesh_vertices")
-            layout.menu("VIEW3D_MT_edit_mesh_edges")
-            layout.menu("VIEW3D_MT_edit_mesh_faces")
-            
-            layout.menu("VIEW3D_MT_edit_mesh_specials")
-            
-            layout.menu("VIEW3D_MT_edit_mesh_delete")
-            
-            layout.separator()
+                layout.separator()
+                
+                layout.menu("VIEW3D_MT_edit_mesh_vertices")
+                layout.menu("VIEW3D_MT_edit_mesh_edges")
+                layout.menu("VIEW3D_MT_edit_mesh_faces")
+                
+                layout.menu("VIEW3D_MT_edit_mesh_specials")
+                
+                layout.menu("VIEW3D_MT_edit_mesh_delete")
+                
+                layout.separator()
 
-            layout.menu("VIEW3D_MT_edit_mesh_showhide")
-            
-            layout.separator()
-            
-            layout.menu("VIEW3D_MT_edit_mesh_normals")
-            layout.menu("VIEW3D_MT_edit_mesh_clean")
-            
-            layout.separator()
-            
-            layout.menu("VIEW3D_MT_uv_map", text="Unwrap")
-            
-            layout.separator()
-            
-            layout.operator("object.editmode_toggle", text="Exit Edit Mode")
+                layout.menu("VIEW3D_MT_edit_mesh_showhide")
+                
+                layout.separator()
+                
+                layout.menu("VIEW3D_MT_edit_mesh_normals")
+                layout.menu("VIEW3D_MT_edit_mesh_clean")
+                
+                layout.separator()
+                
+                layout.menu("VIEW3D_MT_uv_map", text="Unwrap")
+                
+                layout.separator()
+                
+                layout.operator("object.editmode_toggle", text="Exit Edit Mode")
+                
+            elif edit_object.type.lower() == "armature":
+                
+                #Armature
+                
+                arm = edit_object.data
+                
+                layout.separator()
+
+                layout.menu("VIEW3D_MT_transform_armature")
+                layout.menu("VIEW3D_MT_mirror")
+                layout.menu("VIEW3D_MT_snap")
+                layout.menu("VIEW3D_MT_edit_armature_roll")
+
+                layout.separator()
+
+                layout.operator("armature.extrude_move")
+
+                if arm.use_mirror_x:
+                    layout.operator("armature.extrude_forked")
+
+                layout.operator("armature.duplicate_move")
+                layout.operator("armature.merge")
+                layout.operator("armature.fill")
+                layout.operator("armature.delete")
+                layout.operator("armature.split")
+                layout.operator("armature.separate")
+
+                layout.separator()
+
+                layout.operator("armature.subdivide", text="Subdivide")
+                layout.operator("armature.switch_direction", text="Switch Direction")
+
+                layout.separator()
+
+                layout.operator_context = 'EXEC_AREA'
+                layout.operator("armature.autoside_names", text="AutoName Left/Right").type = 'XAXIS'
+                layout.operator("armature.autoside_names", text="AutoName Front/Back").type = 'YAXIS'
+                layout.operator("armature.autoside_names", text="AutoName Top/Bottom").type = 'ZAXIS'
+                layout.operator("armature.flip_names")
+
+                layout.separator()
+
+                layout.operator_context = 'INVOKE_DEFAULT'
+                layout.operator("armature.armature_layers")
+                layout.operator("armature.bone_layers")
+
+                layout.separator()
+
+                layout.menu("VIEW3D_MT_edit_armature_parent")
+
+                layout.separator()
+
+                layout.menu("VIEW3D_MT_bone_options_toggle", text="Bone Settings")
             
         elif mode_string == 'OBJECT':
             
@@ -270,6 +328,7 @@ if __name__ == "__main__":
     #bpy.ops.wm.call_menu(name=rRMB.bl_idname)
     km = bpy.context.window_manager.keyconfigs.default
     
+
 
 
 
