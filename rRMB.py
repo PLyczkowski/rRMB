@@ -93,10 +93,7 @@ class rRMB(bpy.types.Menu):
                 
                 layout.separator()
 
-                layout.menu("VIEW3D_MT_transform_armature")
-                layout.menu("VIEW3D_MT_mirror")
-                layout.menu("VIEW3D_MT_snap")
-                layout.menu("VIEW3D_MT_edit_armature_roll")
+                layout.menu("VIEW3D_MT_rarmature_transform")
 
                 layout.separator()
 
@@ -119,11 +116,7 @@ class rRMB(bpy.types.Menu):
 
                 layout.separator()
 
-                layout.operator_context = 'EXEC_AREA'
-                layout.operator("armature.autoside_names", text="AutoName Left/Right").type = 'XAXIS'
-                layout.operator("armature.autoside_names", text="AutoName Front/Back").type = 'YAXIS'
-                layout.operator("armature.autoside_names", text="AutoName Top/Bottom").type = 'ZAXIS'
-                layout.operator("armature.flip_names")
+                layout.menu("VIEW3D_MT_rarmature_autoname")
 
                 layout.separator()
 
@@ -135,9 +128,13 @@ class rRMB(bpy.types.Menu):
 
                 layout.menu("VIEW3D_MT_edit_armature_parent")
 
-                layout.separator()
+                #layout.separator()
 
-                layout.menu("VIEW3D_MT_bone_options_toggle", text="Bone Settings")
+                #layout.menu("VIEW3D_MT_bone_options_toggle", text="Bone Settings")
+                
+                layout.separator()
+                
+                layout.operator("object.editmode_toggle", text="Exit Edit Mode")
             
         elif mode_string == 'OBJECT':
             
@@ -209,6 +206,64 @@ class rRMB(bpy.types.Menu):
                 
                 layout.menu("VIEW3D_MT_object_showhide")
         
+class VIEW3D_MT_rarmature_autoname(bpy.types.Menu):
+    bl_context = "editmode"
+    bl_label = "Autoname"
+
+    def draw(self, context):
+        
+        layout = self.layout
+        
+        layout.operator_context = 'EXEC_AREA'
+        layout.operator("armature.autoside_names", text="AutoName Left/Right").type = 'XAXIS'
+        layout.operator("armature.autoside_names", text="AutoName Front/Back").type = 'YAXIS'
+        layout.operator("armature.autoside_names", text="AutoName Top/Bottom").type = 'ZAXIS'
+        layout.operator("armature.flip_names")
+        
+class VIEW3D_MT_rarmature_transform(bpy.types.Menu):
+    bl_context = "editmode"
+    bl_label = "Transform"
+
+    def draw(self, context):
+        
+        layout = self.layout
+        obj = context.object
+        
+        # base menu
+        layout.operator("transform.translate", text="Grab/Move")
+        layout.operator("transform.rotate", text="Rotate")
+        layout.operator("transform.resize", text="Scale")
+        
+        layout.separator()
+        
+        layout.menu("VIEW3D_MT_rsnap")
+        layout.menu("VIEW3D_MT_mirror")
+        layout.menu("VIEW3D_MT_edit_armature_roll")
+
+        layout.separator()
+
+        layout.operator("transform.tosphere", text="To Sphere")
+        layout.operator("transform.shear", text="Shear")
+        layout.operator("transform.bend", text="Bend")
+        layout.operator("transform.push_pull", text="Push/Pull")
+        layout.operator("object.vertex_warp", text="Warp")
+        layout.operator("object.vertex_random", text="Randomize")
+
+        # armature specific extensions follow...
+        
+        layout.separator()
+
+        if obj.type == 'ARMATURE' and obj.mode in {'EDIT', 'POSE'}:
+            if obj.data.draw_type == 'BBONE':
+                layout.operator("transform.transform", text="Scale BBone").mode = 'BONE_SIZE'
+            elif obj.data.draw_type == 'ENVELOPE':
+                layout.operator("transform.transform", text="Scale Envelope Distance").mode = 'BONE_SIZE'
+                layout.operator("transform.transform", text="Scale Radius").mode = 'BONE_ENVELOPE'
+
+        if context.edit_object and context.edit_object.type == 'ARMATURE':
+            layout.operator("armature.align")
+        
+
 class VIEW3D_MT_robjecttransform(bpy.types.Menu):
     bl_context = "objectmode"
     bl_label = "Transform"
@@ -251,7 +306,7 @@ class VIEW3D_MT_robjecttransform(bpy.types.Menu):
         
             
 class VIEW3D_MT_rmovecursor(bpy.types.Menu):
-    bl_context = "objectmode"
+    bl_context = "view_3d"
     bl_label = "Move 3d Cursor"
 
     def draw(self, context):
@@ -262,6 +317,18 @@ class VIEW3D_MT_rmovecursor(bpy.types.Menu):
         layout.operator("view3d.snap_cursor_to_center", text="To Center")
         layout.operator("view3d.snap_cursor_to_grid", text="To Grid")
         layout.operator("view3d.snap_cursor_to_active", text="To Active")
+        
+class VIEW3D_MT_rsnap(bpy.types.Menu):
+    bl_context = "view_3d"
+    bl_label = "Snap Selected"
+
+    def draw(self, context):
+        
+        layout = self.layout
+        
+        layout.operator("view3d.snap_selected_to_grid", text="To Grid")
+        layout.operator("view3d.snap_selected_to_cursor", text="To Cursor").use_offset = False
+        layout.operator("view3d.snap_selected_to_cursor", text="To Cursor (Offset)").use_offset = True
         
         
 class VIEW3D_MT_robject(bpy.types.Menu):
