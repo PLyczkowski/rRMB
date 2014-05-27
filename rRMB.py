@@ -46,8 +46,7 @@ class rRMB(bpy.types.Menu):
         #layout.operator("view3d.rcursor3d", text="Place 3d Cursor", icon="CURSOR")
         layout.menu("VIEW3D_MT_rmovecursor")
 
-        layout.operator_menu_enum("object.mode_set", "mode", text="Change Mode",icon="OBJECT_DATAMODE")                
-   
+        layout.operator_menu_enum("object.mode_set", "mode", text="Change Mode")
         
         
         #Mode Specific Menus
@@ -178,6 +177,25 @@ class rRMB(bpy.types.Menu):
                 layout.separator()
 
                 layout.menu("VIEW3D_MT_edit_curve_showhide")
+                
+            elif edit_object.type.lower() == "font":
+                
+                #Font
+                
+                layout.separator()
+                
+                layout.menu("VIEW3D_MT_edit_text_chars")
+
+                layout.separator()
+
+                layout.operator("font.style_toggle", text="Toggle Bold").style = 'BOLD'
+                layout.operator("font.style_toggle", text="Toggle Italic").style = 'ITALIC'
+                layout.operator("font.style_toggle", text="Toggle Underline").style = 'UNDERLINE'
+                layout.operator("font.style_toggle", text="Toggle Small Caps").style = 'SMALL_CAPS'
+
+                layout.separator()
+
+                layout.operator("font.insert_lorem")
             
         elif mode_string == 'OBJECT':
             
