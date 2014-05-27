@@ -44,11 +44,9 @@ class rRMB(bpy.types.Menu):
         
         layout.operator("view3d.cursor3d", text="Place 3d Cursor", icon="CURSOR")
         #layout.operator("view3d.rcursor3d", text="Place 3d Cursor", icon="CURSOR")
-        layout.menu("VIEW3D_MT_rmovecursor")
-
-        layout.operator_menu_enum("object.mode_set", "mode", text="Change Mode",icon="OBJECT_DATAMODE")                
-   
         
+        
+        layout.menu("VIEW3D_MT_rmovecursor")
         
         #Mode Specific Menus
         
@@ -67,7 +65,7 @@ class rRMB(bpy.types.Menu):
                 layout.operator("mesh.select_mode", text="Select Faces", icon="FACESEL").type="FACE"
 
                 layout.separator()
-	
+                
                 layout.menu("VIEW3D_MT_edit_mesh_vertices")
                 layout.menu("VIEW3D_MT_edit_mesh_edges")
                 layout.menu("VIEW3D_MT_edit_mesh_faces")
