@@ -19,7 +19,7 @@
 bl_info = {
     "name": "rRMB Menu",
     "author": "Paweł Łyczkowski",
-    "version": (0.1),
+    "version": (0.2),
     "blender": (2, 70, 0),
     "location": "View3D > RMB",
     "description": "Adds an RMB menu.",
@@ -60,14 +60,15 @@ class rRMB(bpy.types.Menu):
                 
                 #Mesh
 
-                layout.separator()
+#Element Select Options. (Used too often to be in a menu.)
+#                layout.separator()
+#
+#                layout.operator("mesh.select_mode", text="Select Vertices", icon="VERTEXSEL").type="VERT"
+#                layout.operator("mesh.select_mode", text="Select Edges", icon="EDGESEL").type="EDGE"
+#                layout.operator("mesh.select_mode", text="Select Faces", icon="FACESEL").type="FACE"
 
-                layout.operator("mesh.select_mode", text="Select Vertices", icon="VERTEXSEL").type="VERT"
-                layout.operator("mesh.select_mode", text="Select Edges", icon="EDGESEL").type="EDGE"
-                layout.operator("mesh.select_mode", text="Select Faces", icon="FACESEL").type="FACE"
-
                 layout.separator()
-	
+    
                 layout.menu("VIEW3D_MT_edit_mesh_vertices")
                 layout.menu("VIEW3D_MT_edit_mesh_edges")
                 layout.menu("VIEW3D_MT_edit_mesh_faces")
@@ -89,9 +90,9 @@ class rRMB(bpy.types.Menu):
                 
                 layout.menu("VIEW3D_MT_uv_map", text="Unwrap")
                 
-                layout.separator()
+                #layout.separator()
                 
-                layout.operator("object.editmode_toggle", text="Exit Edit Mode")
+                #layout.operator("object.editmode_toggle", text="Exit Edit Mode")
                 
             elif edit_object.type.lower() == "armature":
                 
@@ -140,9 +141,43 @@ class rRMB(bpy.types.Menu):
 
                 #layout.menu("VIEW3D_MT_bone_options_toggle", text="Bone Settings")
                 
+                #layout.separator()
+                
+                #layout.operator("object.editmode_toggle", text="Exit Edit Mode")
+                
+            elif edit_object.type.lower() == "curve":
+                
+                #Curve
+                
                 layout.separator()
                 
-                layout.operator("object.editmode_toggle", text="Exit Edit Mode")
+                layout.menu("VIEW3D_MT_transform")
+                layout.menu("VIEW3D_MT_mirror")
+                layout.menu("VIEW3D_MT_snap")
+
+                layout.separator()
+
+                layout.operator("curve.extrude_move")
+                layout.operator("curve.duplicate_move")
+                layout.operator("curve.split")
+                layout.operator("curve.separate")
+                layout.operator("curve.make_segment")
+                layout.operator("curve.cyclic_toggle")
+                layout.operator("curve.delete", text="Delete...")
+
+                layout.separator()
+
+                layout.menu("VIEW3D_MT_edit_curve_ctrlpoints")
+                layout.menu("VIEW3D_MT_edit_curve_segments")
+
+                layout.separator()
+
+                layout.prop_menu_enum(toolsettings, "proportional_edit")
+                layout.prop_menu_enum(toolsettings, "proportional_edit_falloff")
+
+                layout.separator()
+
+                layout.menu("VIEW3D_MT_edit_curve_showhide")
             
         elif mode_string == 'OBJECT':
             
@@ -192,9 +227,8 @@ class rRMB(bpy.types.Menu):
                 layout.menu("VIEW3D_MT_object_track")
                 layout.menu("VIEW3D_MT_object_constraints")
                 
-                layout.separator()
-                layout.operator("object.editmode_toggle", text="Enter Edit Mode",
-                icon='EDITMODE_HLT')
+                #layout.separator()
+                #layout.operator("object.editmode_toggle", text="Enter Edit Mode", icon='EDITMODE_HLT')
 
                 #layout.separator()
 
@@ -257,7 +291,7 @@ class VIEW3D_MT_rarmature_transform(bpy.types.Menu):
         layout.operator("object.vertex_warp", text="Warp")
         layout.operator("object.vertex_random", text="Randomize")
 
-        # armature specific extensions follow...
+        # armature specific
         
         layout.separator()
 
@@ -403,7 +437,6 @@ if __name__ == "__main__":
     #bpy.ops.wm.call_menu(name=rRMB.bl_idname)
     km = bpy.context.window_manager.keyconfigs.default
     
-
 
 
 
