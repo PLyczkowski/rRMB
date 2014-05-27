@@ -421,9 +421,10 @@ class rPlace3DCursor(bpy.types.Operator):
         
 #------------------- REGISTER ------------------------------     
 
+addon_keymaps = []
+
 def register():
     
-    bpy.utils.register_class(rPlace3DCursor)
     bpy.utils.register_module(__name__)
     
     wm = bpy.context.window_manager
@@ -432,29 +433,25 @@ def register():
         km = kc.keymaps.new(name='3D View', space_type='VIEW_3D')
         kmi = km.keymap_items.new('wm.call_menu', 'ACTIONMOUSE', 'PRESS')
         kmi.properties.name = "VIEW3D_MT_rRMB"
+        addon_keymaps.append((km, kmi))
         kmi = km.keymap_items.new('view3d.cursor3d', 'ACTIONMOUSE', 'PRESS', alt=True)
+        addon_keymaps.append((km, kmi))
 
 def unregister():
     
-    bpy.utils.unregister_class(rPlace3DCursor)
-    bpy.utils.unregister_(__name__)
+    bpy.utils.unregister_module(__name__)
     
     wm = bpy.context.window_manager
-    kc = wm.keyconfigs.addon
-    if kc:
-        km = kc.keymaps['3D View']
-        for kmi in km.keymap_items:
-            if kmi.idname == 'wm.call_menu':
-                if kmi.properties.name == "VIEW3D_MT_rRMB":
-                    km.keymap_items.remove(kmi)
-                    break
-
+    for km, kmi in addon_keymaps:
+        km.keymap_items.remove(kmi)
+    addon_keymaps.clear()
+        
 if __name__ == "__main__":
     register()
-
-    #bpy.ops.wm.call_menu(name=rRMB.bl_idname)
-    km = bpy.context.window_manager.keyconfigs.default
     
+
+
+
 
 
 
