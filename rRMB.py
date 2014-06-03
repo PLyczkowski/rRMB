@@ -46,8 +46,7 @@ class rRMB(bpy.types.Menu):
         #layout.operator("view3d.rcursor3d", text="Place 3d Cursor", icon="CURSOR")
         layout.menu("VIEW3D_MT_rmovecursor")
 
-        layout.operator_menu_enum("object.mode_set", "mode", text="Change Mode")
-        
+        layout.operator_menu_enum("object.mode_set", "mode", text="Change Mode") 
         
         #Mode Specific Menus
         
@@ -152,7 +151,7 @@ class rRMB(bpy.types.Menu):
                 
                 layout.menu("VIEW3D_MT_transform")
                 layout.menu("VIEW3D_MT_mirror")
-                layout.menu("VIEW3D_MT_snap")
+                layout.menu("VIEW3D_MT_rsnap")
 
                 layout.separator()
 
@@ -162,7 +161,7 @@ class rRMB(bpy.types.Menu):
                 layout.operator("curve.separate")
                 layout.operator("curve.make_segment")
                 layout.operator("curve.cyclic_toggle")
-                layout.operator("curve.delete", text="Delete...")
+                layout.operator("curve.delete", text="Delete")
 
                 layout.separator()
 
@@ -206,6 +205,9 @@ class rRMB(bpy.types.Menu):
                 layout.separator()
                 
                 layout.menu("VIEW3D_MT_robjecttransform")
+                layout.menu("VIEW3D_MT_robject_apply")
+                layout.menu("VIEW3D_MT_robject_clear")
+                layout.menu("VIEW3D_MT_rorigintransform")
                 
                 #layout.menu("VIEW3D_MT_transform_object")
                 #layout.menu("VIEW3D_MT_mirror")
@@ -216,7 +218,7 @@ class rRMB(bpy.types.Menu):
                 layout.separator()
 
                 layout.menu("VIEW3D_MT_object_showhide")
-                layout.operator("object.move_to_layer", text="Move to Layer...")
+                layout.operator("object.move_to_layer", text="Move to Layer")
                 layout.menu("VIEW3D_MT_object_group")
                 layout.menu("VIEW3D_MT_object_parent")
                 
@@ -229,19 +231,22 @@ class rRMB(bpy.types.Menu):
                 layout.operator("object.join")
                 layout.operator("object.duplicate_move", text="Duplicate")
                 layout.operator("object.duplicate_move_linked")
-                layout.operator("object.delete", text="Delete...")
+                layout.operator("view3d.copybuffer", text="Copy")
+                layout.operator("view3d.pastebuffer", text="Paste")
+                layout.operator("object.delete", text="Delete")
                 
-                layout.separator()
+                # layout.separator()
                 
-                layout.operator("object.proxy_make", text="Make Proxy...")
-                layout.menu("VIEW3D_MT_make_links", text="Make Links...")
-                layout.operator("object.make_dupli_face")
-                layout.operator_menu_enum("object.make_local", "type", text="Make Local...")
-                layout.menu("VIEW3D_MT_make_single_user")
-                layout.operator_menu_enum("object.convert", "target")
+                # layout.operator("object.proxy_make", text="Make Proxy...")
+                # layout.menu("VIEW3D_MT_make_links", text="Make Links...")
+                # layout.operator("object.make_dupli_face")
+                # layout.operator_menu_enum("object.make_local", "type", text="Make Local...")
+                # layout.menu("VIEW3D_MT_make_single_user")
+                # layout.operator_menu_enum("object.convert", "target")
 
                 layout.separator()
                 
+                layout.menu("VIEW3D_MT_robjectdata")
                 layout.menu("VIEW3D_MT_object_track")
                 layout.menu("VIEW3D_MT_object_constraints")
                 
@@ -265,6 +270,7 @@ class rRMB(bpy.types.Menu):
                 layout.separator()
                 
                 layout.menu("VIEW3D_MT_object_showhide")
+                layout.operator("view3d.pastebuffer", text="Paste")
         
 class VIEW3D_MT_rarmature_autoname(bpy.types.Menu):
     bl_context = "editmode"
@@ -339,16 +345,17 @@ class VIEW3D_MT_robjecttransform(bpy.types.Menu):
         layout.separator()
         
         layout.menu("VIEW3D_MT_mirror")
-        layout.menu("VIEW3D_MT_object_clear")
-        layout.menu("VIEW3D_MT_object_apply")
-        layout.menu("VIEW3D_MT_snap")
+        # layout.menu("VIEW3D_MT_object_clear")
+        # layout.menu("VIEW3D_MT_object_apply")
+        layout.menu("VIEW3D_MT_rsnap")
+        layout.operator("object.origin_set", text="Move Geometry to Origin").type = 'GEOMETRY_ORIGIN'
         
-        layout.separator()
+        # layout.separator()
         
-        layout.operator_context = 'EXEC_AREA'
-        layout.operator("object.origin_set", text="Geometry to Origin").type = 'GEOMETRY_ORIGIN'
-        layout.operator("object.origin_set", text="Origin to Geometry").type = 'ORIGIN_GEOMETRY'
-        layout.operator("object.origin_set", text="Origin to 3D Cursor").type = 'ORIGIN_CURSOR'
+        # layout.operator_context = 'EXEC_AREA'
+        # layout.operator("object.origin_set", text="Geometry to Origin").type = 'GEOMETRY_ORIGIN'
+        # layout.operator("object.origin_set", text="Origin to Geometry").type = 'ORIGIN_GEOMETRY'
+        # layout.operator("object.origin_set", text="Origin to 3D Cursor").type = 'ORIGIN_CURSOR'
         
         layout.separator()
         
@@ -362,8 +369,74 @@ class VIEW3D_MT_robjecttransform(bpy.types.Menu):
         else:
             layout.operator_context = 'EXEC_REGION_WIN'
             layout.operator("transform.transform", text="Align to Transform Orientation").mode = 'ALIGN' # XXX see alignmenu() in edit.c of b2.4x to get this working
+
+class VIEW3D_MT_robject_clear(bpy.types.Menu):
+    bl_label = "Clear Transforms"
+
+    def draw(self, context):
+        layout = self.layout
+
+        layout.operator("object.location_clear", text="Location")
+        layout.operator("object.rotation_clear", text="Rotation")
+        layout.operator("object.scale_clear", text="Scale")
+        layout.operator("object.origin_clear", text="Location Relative To Parent (Origin)")
+
+class VIEW3D_MT_robject_apply(bpy.types.Menu):
+    bl_label = "Apply Transforms"
+
+    def draw(self, context):
+        layout = self.layout
+
+        # props = layout.operator("object.transform_apply", text="Location", text_ctxt=i18n_contexts.default)
+        props = layout.operator("object.transform_apply", text="Location")
+        props.location, props.rotation, props.scale = True, False, False
+
+        # props = layout.operator("object.transform_apply", text="Rotation", text_ctxt=i18n_contexts.default)
+        props = layout.operator("object.transform_apply", text="Rotation")
+        props.location, props.rotation, props.scale = False, True, False
+
+        # props = layout.operator("object.transform_apply", text="Scale", text_ctxt=i18n_contexts.default)
+        props = layout.operator("object.transform_apply", text="Scale")
+        props.location, props.rotation, props.scale = False, False, True
+        # props = layout.operator("object.transform_apply", text="Rotation & Scale", text_ctxt=i18n_contexts.default)
+        props = layout.operator("object.transform_apply", text="Rotation & Scale")
+        props.location, props.rotation, props.scale = False, True, True
+
+        layout.separator()
+
+        # layout.operator("object.visual_transform_apply", text="Visual Transform", text_ctxt=i18n_contexts.default)
+        layout.operator("object.visual_transform_apply", text="Visual Transform")
+        # layout.operator("object.duplicates_make_real")
+
+
+class VIEW3D_MT_rorigintransform(bpy.types.Menu):
+    bl_context = "objectmode"
+    bl_label = "Move Origin"
+
+    def draw(self, context):
         
+        layout = self.layout
         
+        layout.operator_context = 'EXEC_AREA'
+        #layout.operator("object.origin_set", text="Geometry to Origin").type = 'GEOMETRY_ORIGIN'
+        layout.operator("object.origin_set", text="Move Origin to Geometry").type = 'ORIGIN_GEOMETRY'
+        layout.operator("object.origin_set", text="Move Origin to 3D Cursor").type = 'ORIGIN_CURSOR'
+
+class VIEW3D_MT_robjectdata(bpy.types.Menu):
+    bl_context = "objectmode"
+    bl_label = "Object Data"
+
+    def draw(self, context):
+        
+        layout = self.layout
+        
+        layout.operator("object.proxy_make", text="Make Proxy")
+        layout.menu("VIEW3D_MT_make_links", text="Make Links")
+        layout.operator("object.make_dupli_face")
+        layout.operator_menu_enum("object.make_local", "type", text="Make Local")
+        layout.menu("VIEW3D_MT_make_single_user")
+        layout.operator_menu_enum("object.convert", "target")
+
             
 class VIEW3D_MT_rmovecursor(bpy.types.Menu):
     bl_context = "view_3d"
@@ -412,10 +485,58 @@ class rPlace3DCursor(bpy.types.Operator):
     def poll(cls, context):
         return True
 
+    def projectCursor(self, event):
+
+        coord = mathutils.Vector((event.mouse_region_x, event.mouse_region_y))
+
+        transform = bpy_extras.view3d_utils.region_2d_to_location_3d
+
+        region = bpy.context.region
+
+        rv3d = bpy.context.space_data.region_3d
+
+        #### cursor used for the depth location of the mouse
+
+        depth_location = bpy.context.scene.cursor_location
+
+        ### creating 3d vector from the cursor
+
+        end = transform(region, rv3d, coord, depth_location)
+        
+        ### Viewport origin
+
+        start = bpy_extras.view3d_utils.region_2d_to_origin_3d(region, rv3d, coord)
+        
+        ### Cast ray from view to mouselocation
+
+        ray = bpy.context.scene.ray_cast(start, start+(end-start)*2000)
+        
+        return start, end, ray
+
     def execute(self, context):
         
-        #TODO A way to set the 3d cursor, probably according to provided 2d coordinates.
-        #bpy.ops.view3d.cursor3d()
+        # rayStart,rayEnd, ray = self.projectCursor(event)
+
+        # if ray[0] == True:
+
+        #    bpy.context.scene.cursor_location = ray[3]
+        
+        return {'FINISHED'}
+
+class rmove_to_layer(bpy.types.Operator):
+    
+    bl_idname = "object.rmove_to_layer"
+    bl_label = "rMoveToLayer"
+    bl_description = "rMoveToLayer"
+    bl_register = True
+
+    @classmethod
+    def poll(cls, context):
+        return True
+
+    def execute(self, context):
+
+        bpy.ops.object.move_to_layer()
         
         return {'FINISHED'}
         
@@ -449,6 +570,7 @@ def unregister():
 if __name__ == "__main__":
     register()
     
+
 
 
 
