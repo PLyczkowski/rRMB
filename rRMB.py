@@ -39,6 +39,7 @@ class rRMB(bpy.types.Menu):
         mode_string = context.mode
         edit_object = context.edit_object
         layout = self.layout
+        selected = context.selected_objects
         
         #Menus in All Modes
         
@@ -198,9 +199,9 @@ class rRMB(bpy.types.Menu):
             
         elif mode_string == 'OBJECT':
             
-            #Object Mode with Active Object
+            #Object Mode with Objects selected
             
-            if obj:
+            if len(selected)>0:
                 
                 layout.separator()
                 
@@ -265,12 +266,48 @@ class rRMB(bpy.types.Menu):
                 
             else:
                 
-                #Object Mode without Active Object
+                #Object Mode without Objects selected
                 
                 layout.separator()
                 
                 layout.menu("VIEW3D_MT_object_showhide")
                 layout.operator("view3d.pastebuffer", text="Paste")
+
+                layout.separator()
+
+                layout.operator_context = 'EXEC_REGION_WIN'
+
+                #layout.operator_menu_enum("object.mesh_add", "type", text="Mesh", icon='OUTLINER_OB_MESH')
+                layout.menu("INFO_MT_mesh_add", icon='OUTLINER_OB_MESH')
+
+                #layout.operator_menu_enum("object.curve_add", "type", text="Curve", icon='OUTLINER_OB_CURVE')
+                layout.menu("INFO_MT_curve_add", icon='OUTLINER_OB_CURVE')
+                #layout.operator_menu_enum("object.surface_add", "type", text="Surface", icon='OUTLINER_OB_SURFACE')
+                layout.menu("INFO_MT_surface_add", icon='OUTLINER_OB_SURFACE')
+                layout.menu("INFO_MT_metaball_add", text="Metaball", icon='OUTLINER_OB_META')
+                layout.operator("object.text_add", text="Text", icon='OUTLINER_OB_FONT')
+                layout.separator()
+
+                layout.menu("INFO_MT_armature_add", icon='OUTLINER_OB_ARMATURE')
+                layout.operator("object.add", text="Lattice", icon='OUTLINER_OB_LATTICE').type = 'LATTICE'
+                layout.operator_menu_enum("object.empty_add", "type", text="Empty", icon='OUTLINER_OB_EMPTY')
+                layout.separator()
+
+                layout.operator("object.speaker_add", text="Speaker", icon='OUTLINER_OB_SPEAKER')
+                layout.separator()
+
+                layout.operator("object.camera_add", text="Camera", icon='OUTLINER_OB_CAMERA')
+                layout.operator_menu_enum("object.lamp_add", "type", text="Lamp", icon='OUTLINER_OB_LAMP')
+                layout.separator()
+
+                layout.operator_menu_enum("object.effector_add", "type", text="Force Field", icon='OUTLINER_OB_EMPTY')
+                layout.separator()
+
+                if len(bpy.data.groups) > 10:
+                    layout.operator_context = 'INVOKE_REGION_WIN'
+                    layout.operator("object.group_instance_add", text="Group Instance...", icon='OUTLINER_OB_EMPTY')
+                else:
+                    layout.operator_menu_enum("object.group_instance_add", "group", text="Group Instance", icon='OUTLINER_OB_EMPTY')
         
 class VIEW3D_MT_rarmature_autoname(bpy.types.Menu):
     bl_context = "editmode"
@@ -516,6 +553,8 @@ class rPlace3DCursor(bpy.types.Operator):
 
     def execute(self, context):
         
+        # TODO
+
         # rayStart,rayEnd, ray = self.projectCursor(event)
 
         # if ray[0] == True:
@@ -524,7 +563,7 @@ class rPlace3DCursor(bpy.types.Operator):
         
         return {'FINISHED'}
 
-class rmove_to_layer(bpy.types.Operator):
+class rMoveToLayer(bpy.types.Operator):
     
     bl_idname = "object.rmove_to_layer"
     bl_label = "rMoveToLayer"
@@ -537,7 +576,9 @@ class rmove_to_layer(bpy.types.Operator):
 
     def execute(self, context):
 
-        bpy.ops.object.move_to_layer()
+        # TODO
+
+        # bpy.ops.object.move_to_layer()
         
         return {'FINISHED'}
         
@@ -570,11 +611,3 @@ def unregister():
         
 if __name__ == "__main__":
     register()
-    
-
-
-
-
-
-
-
