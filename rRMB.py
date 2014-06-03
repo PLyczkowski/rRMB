@@ -435,6 +435,7 @@ class VIEW3D_MT_robjectdata(bpy.types.Menu):
         layout.operator("object.make_dupli_face")
         layout.operator_menu_enum("object.make_local", "type", text="Make Local")
         layout.menu("VIEW3D_MT_make_single_user")
+        layout.operator("object.duplicates_make_real")
         layout.operator_menu_enum("object.convert", "target")
 
             
