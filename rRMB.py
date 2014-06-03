@@ -19,7 +19,7 @@
 bl_info = {
     "name": "rRMB Menu",
     "author": "Paweł Łyczkowski",
-    "version": (0.2),
+    "version": (0.3),
     "blender": (2, 70, 0),
     "location": "View3D > RMB",
     "description": "Adds an RMB menu.",
