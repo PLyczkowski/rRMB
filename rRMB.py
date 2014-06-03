@@ -169,10 +169,10 @@ class rRMB(bpy.types.Menu):
                 layout.menu("VIEW3D_MT_edit_curve_ctrlpoints")
                 layout.menu("VIEW3D_MT_edit_curve_segments")
 
-                layout.separator()
+                # layout.separator()
 
-                layout.prop_menu_enum(toolsettings, "proportional_edit")
-                layout.prop_menu_enum(toolsettings, "proportional_edit_falloff")
+                # layout.prop_menu_enum(toolsettings, "proportional_edit")
+                # layout.prop_menu_enum(toolsettings, "proportional_edit_falloff")
 
                 layout.separator()
 
@@ -611,3 +611,11 @@ def unregister():
         
 if __name__ == "__main__":
     register()
+    
+
+
+
+
+
+
+
