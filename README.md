@@ -1,4 +1,4 @@
-rRMB
+rRMB Menu
 ====
 
 Right mouse button menu for Blender.
