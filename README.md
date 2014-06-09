@@ -7,4 +7,4 @@ Right mouse button menu for Blender.
 
 ---
 
-Feel free to grab any tasks in the issue tracker without anyone assigned.
+Feel free to claim any tasks in the issue tracker without anyone assigned.
