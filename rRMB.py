@@ -51,9 +51,9 @@ class rRMB(bpy.types.Menu):
         # layout.operator("view3d.rcursor3d", text="Place 3d Cursor", icon="CURSOR")
         layout.menu("VIEW3D_MT_rmovecursor")
 
-        layout.separator()
+        # layout.separator()
 
-        layout.operator_menu_enum("object.mode_set", "mode", text="Change Mode") 
+        # layout.operator_menu_enum("object.mode_set", "mode", text="Change Mode") 
         
         #Mode Specific Menus
         
@@ -258,7 +258,7 @@ class rRMB(bpy.types.Menu):
             
             if len(selected)>0:
 
-                # layout.separator()
+                layout.separator()
 
                 layout.menu("VIEW3D_MT_select_object")
                 
