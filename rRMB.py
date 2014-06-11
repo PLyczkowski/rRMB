@@ -33,6 +33,10 @@ class rRMB(bpy.types.Menu):
     bl_label = ""
     bl_idname = "VIEW3D_MT_rRMB"
 
+    def clicked_on_view(self, context):
+
+        print()
+
     def draw(self, context):
         
         obj = context.active_object
@@ -44,8 +48,10 @@ class rRMB(bpy.types.Menu):
         #Menus in All Modes
         
         layout.operator("view3d.cursor3d", text="Place 3d Cursor", icon="CURSOR")
-        #layout.operator("view3d.rcursor3d", text="Place 3d Cursor", icon="CURSOR")
+        # layout.operator("view3d.rcursor3d", text="Place 3d Cursor", icon="CURSOR")
         layout.menu("VIEW3D_MT_rmovecursor")
+
+        layout.separator()
 
         layout.operator_menu_enum("object.mode_set", "mode", text="Change Mode") 
         
@@ -59,39 +65,86 @@ class rRMB(bpy.types.Menu):
                 
                 #Mesh
 
-#Element Select Options. (Used too often to be in a menu.)
-#                layout.separator()
-#
-#                layout.operator("mesh.select_mode", text="Select Vertices", icon="VERTEXSEL").type="VERT"
-#                layout.operator("mesh.select_mode", text="Select Edges", icon="EDGESEL").type="EDGE"
-#                layout.operator("mesh.select_mode", text="Select Faces", icon="FACESEL").type="FACE"
-
-                layout.separator()
-    
-                layout.menu("VIEW3D_MT_edit_mesh_vertices")
-                layout.menu("VIEW3D_MT_edit_mesh_edges")
-                layout.menu("VIEW3D_MT_edit_mesh_faces")
-                
-                layout.menu("VIEW3D_MT_edit_mesh_specials")
-                
-                layout.menu("VIEW3D_MT_edit_mesh_delete")
-                
                 layout.separator()
 
                 layout.menu("VIEW3D_MT_edit_mesh_showhide")
-                
+
+                layout.menu("VIEW3D_MT_rselect_edit_mesh")
+
                 layout.separator()
-                
-                layout.menu("VIEW3D_MT_edit_mesh_normals")
-                layout.menu("VIEW3D_MT_edit_mesh_clean")
-                
-                layout.separator()
-                
-                layout.menu("VIEW3D_MT_uv_map", text="Unwrap")
-                
-                #layout.separator()
-                
-                #layout.operator("object.editmode_toggle", text="Exit Edit Mode")
+
+                obj.update_from_editmode()
+
+                selected_verts = [v for v in obj.data.vertices if v.select]
+
+                if len(selected_verts) > 0:
+
+                    #--- Mesh With Vertices Selected
+
+                    layout.menu("VIEW3D_MT_rcut")
+
+                    layout.menu("VIEW3D_MT_rcreate")
+
+                    layout.menu("VIEW3D_MT_rtransform")
+
+                    layout.menu("VIEW3D_MT_rdeform")
+
+                    layout.separator()
+        
+                    layout.menu("VIEW3D_MT_redit_mesh_vertices")
+                    layout.menu("VIEW3D_MT_redit_mesh_edges")
+                    layout.menu("VIEW3D_MT_redit_mesh_faces")
+
+                    layout.menu("VIEW3D_MT_redit_mesh_normals")
+                    
+                    # layout.menu("VIEW3D_MT_edit_mesh_specials")
+
+                    layout.separator()
+
+                    layout.operator("mesh.duplicate_move", text = "Duplicate")
+
+                    layout.operator_menu_enum("mesh.separate", "type", text = "Separate Into New Object")
+                    
+                    layout.menu("VIEW3D_MT_edit_mesh_delete")
+                    
+                    layout.separator()
+
+                    layout.menu("VIEW3D_MT_rshape_keys_vertex_groups")
+
+                    layout.menu("VIEW3D_MT_hook")
+
+                    layout.separator()
+
+                    layout.menu("VIEW3D_MT_edit_mesh_clean")
+                    
+                    layout.menu("VIEW3D_MT_uv_map", text="Unwrap")
+                    
+                    #layout.separator()
+                    
+                    #layout.operator("object.editmode_toggle", text="Exit Edit Mode")
+
+                else:
+
+                    #--- Mesh With Nothing Selected
+
+                    layout.menu("VIEW3D_MT_rcut_nothing_selected")
+
+                    layout.separator()
+
+                    layout.label(text="Add:")
+                    layout.operator("mesh.primitive_plane_add", text="Plane", icon='MESH_PLANE')
+                    layout.operator("mesh.primitive_cube_add", text="Cube", icon='MESH_CUBE')
+                    layout.operator("mesh.primitive_circle_add", text="Circle", icon='MESH_CIRCLE')
+                    layout.operator("mesh.primitive_uv_sphere_add", text="UV Sphere", icon='MESH_UVSPHERE')
+                    layout.operator("mesh.primitive_ico_sphere_add", text="Ico Sphere", icon='MESH_ICOSPHERE')
+                    layout.operator("mesh.primitive_cylinder_add", text="Cylinder", icon='MESH_CYLINDER')
+                    layout.operator("mesh.primitive_cone_add", text="Cone", icon='MESH_CONE')
+                    layout.operator("mesh.primitive_torus_add", text="Torus", icon='MESH_TORUS')
+
+                    layout.operator("mesh.primitive_grid_add", text="Grid", icon='MESH_GRID')
+                    layout.operator("mesh.primitive_monkey_add", text="Monkey", icon='MESH_MONKEY')
+
+
                 
             elif edit_object.type.lower() == "armature":
                 
@@ -198,10 +251,16 @@ class rRMB(bpy.types.Menu):
                 layout.operator("font.insert_lorem")
             
         elif mode_string == 'OBJECT':
+
+            #Object Mode
             
-            #Object Mode with Objects selected
+            #---Object Mode with Objects selected
             
             if len(selected)>0:
+
+                # layout.separator()
+
+                layout.menu("VIEW3D_MT_select_object")
                 
                 layout.separator()
                 
@@ -266,7 +325,7 @@ class rRMB(bpy.types.Menu):
                 
             else:
                 
-                #Object Mode without Objects selected
+                #---Object Mode without Objects selected
                 
                 layout.separator()
                 
@@ -502,13 +561,453 @@ class VIEW3D_MT_rsnap(bpy.types.Menu):
         layout.operator("view3d.snap_selected_to_cursor", text="To Cursor (Offset)").use_offset = True
         
         
-class VIEW3D_MT_robject(bpy.types.Menu):
-    bl_context = "objectmode"
-    bl_label = "Object"
+class VIEW3D_MT_rcut(bpy.types.Menu):
+    bl_context = "editmode"
+    bl_label = "Cut"
 
     def draw(self, context):
         
         layout = self.layout
+
+        layout.menu("VIEW3D_MT_rsubdivide")
+
+        layout.separator()
+
+        layout.operator("mesh.loopcut_slide")
+
+        op = layout.operator("mesh.knife_tool", text="Knife All")
+        op.use_occlude_geometry = True
+        op.only_selected = False
+
+        op = layout.operator("mesh.knife_tool", text="Knife Selected")
+        op.use_occlude_geometry = False
+        op.only_selected = True
+        
+        layout.separator()
+
+        layout.operator("mesh.bisect", text="Plane Cut")
+
+        layout.operator("mesh.knife_project", text="Cut With Object")
+
+        layout.separator()
+
+        layout.operator("mesh.rip_move")
+        layout.operator("mesh.rip_move_fill")
+        layout.operator("mesh.edge_split", text = "Rip Along Selected Edges")
+
+        layout.separator()
+
+        layout.operator("mesh.split", text = "Separate")
+
+class VIEW3D_MT_rcut_nothing_selected(bpy.types.Menu):
+    bl_context = "editmode"
+    bl_label = "Cut"
+
+    def draw(self, context):
+        
+        layout = self.layout
+
+        # layout.menu("VIEW3D_MT_rsubdivide")
+
+        # layout.separator()
+
+        layout.operator("mesh.loopcut_slide")
+
+        # op = layout.operator("mesh.knife_tool", text="Knife All")
+        # op.use_occlude_geometry = True
+        # op.only_selected = False
+
+        # op = layout.operator("mesh.knife_tool", text="Knife Selected")
+        # op.use_occlude_geometry = False
+        # op.only_selected = True
+        
+        # layout.separator()
+
+        # layout.operator("mesh.bisect", text="Plane Cut")
+
+        layout.operator("mesh.knife_project", text="Cut With Object")
+
+        # layout.separator()
+
+        # layout.operator("mesh.rip_move")
+        # layout.operator("mesh.rip_move_fill")
+        # layout.operator("mesh.split")
+
+
+class VIEW3D_MT_rcreate(bpy.types.Menu):
+    bl_context = "editmode"
+    bl_label = "Create"
+
+    def draw(self, context):
+        
+        layout = self.layout
+
+        layout.operator("mesh.edge_face_add")
+        layout.operator("mesh.bridge_edge_loops", text="Bridge")
+
+        layout.separator()
+
+        layout.operator("view3d.edit_mesh_extrude_move_normal", text="Extrude")
+        layout.operator("view3d.edit_mesh_extrude_move_shrink_fatten", text="Extrude Along Normals")
+        layout.operator("view3d.edit_mesh_extrude_individual_move", text="Extrude Individual")
+
+        layout.separator()
+
+        layout.operator("mesh.fill", text = "Fill With Triangles")
+        layout.operator("mesh.fill_grid")
+
+
+class VIEW3D_MT_rdeform(bpy.types.Menu):
+    bl_context = "editmode"
+    bl_label = "Deform"
+
+    def draw(self, context):
+        
+        layout = self.layout
+
+        layout.operator("transform.tosphere", text="To Sphere")
+        layout.operator("transform.shear", text="Shear")
+        layout.operator("transform.bend", text="Bend")
+        layout.operator("transform.shrink_fatten", text="Shrink/Fatten")
+        layout.operator("transform.push_pull", text="Push/Pull")
+        layout.operator("object.vertex_warp", text="Warp")
+
+        layout.separator()
+        
+        layout.operator("mesh.vertices_smooth", text = "Relax")
+        layout.operator("object.vertex_random")
+        layout.operator("mesh.noise", text = "Displace With Texture")
+
+
+class VIEW3D_MT_rtransform(bpy.types.Menu):
+    bl_context = "editmode"
+    bl_label = "Transform"
+
+    def draw(self, context):
+        
+        layout = self.layout
+
+        layout.operator("transform.translate", text="Grab/Move")
+        layout.operator("transform.rotate", text="Rotate")
+        layout.operator("transform.resize", text="Scale")
+        # layout.operator("transform.shrink_fatten", text="Shrink/Fatten")
+
+        layout.separator()
+
+        layout.menu("VIEW3D_MT_mirror")
+
+        layout.menu("VIEW3D_MT_rsymmetry")
+
+        # layout.operator("transform.tosphere", text="To Sphere")
+        # layout.operator("transform.shear", text="Shear")
+        # layout.operator("transform.bend", text="Bend")
+        # layout.operator("transform.push_pull", text="Push/Pull")
+        # layout.operator("object.vertex_warp", text="Warp")
+        # layout.operator("object.vertex_random", text="Randomize")
+
+
+class VIEW3D_MT_rsubdivide(bpy.types.Menu):
+    bl_context = "editmode"
+    bl_label = "Subdivide"
+
+    def draw(self, context):
+        
+        layout = self.layout
+
+        layout.operator("mesh.subdivide", text="Simple").smoothness = 0.0
+        layout.operator("mesh.subdivide", text="Smooth").smoothness = 1.0
+
+        layout.separator()
+
+        layout.operator("mesh.unsubdivide", text = "Unsubdivide")
+
+class VIEW3D_MT_redit_mesh_vertices(bpy.types.Menu):
+    bl_label = "Vertices"
+
+    def draw(self, context):
+        layout = self.layout
+        layout.operator_context = 'INVOKE_REGION_WIN'
+
+        layout.operator("mesh.vert_connect", text="Connect")
+        layout.operator("transform.vert_slide", text="Slide")
+        # layout.operator("mesh.vertices_smooth", text = "Relax")
+
+        layout.separator()
+
+        layout.operator("mesh.merge")
+        layout.operator("mesh.remove_doubles")
+        # layout.operator("mesh.rip_move")
+        # layout.operator("mesh.rip_move_fill")
+        # layout.operator("mesh.split")
+        # layout.operator_menu_enum("mesh.separate", "type")
+
+        layout.separator()
+
+        # op = layout.operator("mesh.mark_sharp", text="Shade Smooth")
+        # op.use_verts = True
+        # op.clear = True
+        # layout.operator("mesh.mark_sharp", text="Shade Sharp").use_verts = True
+
+        # layout.separator()
+
+        layout.operator("mesh.bevel").vertex_only = True
+        layout.operator("mesh.convex_hull")
+
+        # layout.operator("mesh.blend_from_shape")
+
+        # layout.operator("object.vertex_group_blend")
+        # layout.operator("mesh.shape_propagate_to_all")
+
+        # layout.separator()
+
+        # layout.menu("VIEW3D_MT_vertex_group")
+        # layout.menu("VIEW3D_MT_hook")
+
+class VIEW3D_MT_redit_mesh_edges(bpy.types.Menu):
+    bl_label = "Edges"
+
+    def draw(self, context):
+        layout = self.layout
+
+        with_freestyle = bpy.app.build_options.freestyle
+        scene = context.scene
+
+        layout.operator_context = 'INVOKE_REGION_WIN'
+
+        # layout.operator("mesh.edge_face_add")
+        # layout.operator("mesh.subdivide")
+        # layout.operator("mesh.unsubdivide")
+
+        # layout.separator()
+
+        # layout.operator("mesh.loop_multi_select", text="Edge Loop").ring = False
+        # layout.operator("mesh.loop_multi_select", text="Edge Ring").ring = True
+        layout.operator("transform.edge_slide")
+
+        layout.separator()
+
+        layout.operator("transform.edge_crease")
+
+        layout.separator()
+
+        layout.operator("mesh.bevel").vertex_only = False
+        layout.operator("transform.edge_bevelweight")
+
+
+        layout.separator()
+
+        layout.operator("mesh.mark_seam").clear = False
+        layout.operator("mesh.mark_seam", text="Clear Seam").clear = True
+
+        layout.separator()
+
+        layout.operator("mesh.mark_sharp")
+        layout.operator("mesh.mark_sharp", text="Clear Sharp").clear = True
+
+        layout.separator()
+
+        if with_freestyle and not scene.render.use_shading_nodes:
+            layout.operator("mesh.mark_freestyle_edge").clear = False
+            layout.operator("mesh.mark_freestyle_edge", text="Clear Freestyle Edge").clear = True
+            layout.separator()
+
+        layout.operator("mesh.edge_rotate", text="Rotate Edge CW").use_ccw = False
+        layout.operator("mesh.edge_rotate", text="Rotate Edge CCW").use_ccw = True
+
+        # layout.separator()
+
+        # layout.operator("mesh.edge_split")
+        # layout.operator("mesh.bridge_edge_loops")
+
+        # layout.separator()
+
+        # layout.operator("mesh.loop_to_region")
+        # layout.operator("mesh.region_to_loop")
+
+
+class VIEW3D_MT_redit_mesh_faces(bpy.types.Menu):
+    bl_label = "Faces"
+
+    def draw(self, context):
+        layout = self.layout
+
+        with_freestyle = bpy.app.build_options.freestyle
+        scene = context.scene
+
+        layout.operator_context = 'INVOKE_REGION_WIN'
+
+        # layout.operator("mesh.flip_normals")
+        # layout.operator("mesh.edge_face_add")
+        # layout.operator("mesh.fill")
+        # layout.operator("mesh.fill_grid")
+        layout.operator("mesh.inset")
+        # layout.operator("mesh.bevel").vertex_only = False
+        layout.operator("mesh.solidify")
+        layout.operator("mesh.wireframe")
+
+        layout.separator()
+
+        if with_freestyle and not scene.render.use_shading_nodes:
+            layout.operator("mesh.mark_freestyle_face").clear = False
+            layout.operator("mesh.mark_freestyle_face", text="Clear Freestyle Face").clear = True
+            layout.separator()
+
+        layout.operator("mesh.poke")
+        layout.operator("mesh.quads_convert_to_tris")
+        layout.operator("mesh.tris_convert_to_quads")
+        layout.operator("mesh.beautify_fill", text = "Rearrange Triangles (Beautify)")
+
+        # layout.separator()
+
+        # layout.operator("mesh.faces_shade_smooth")
+        # layout.operator("mesh.faces_shade_flat")
+
+        # layout.separator()
+
+        # layout.operator("mesh.edge_rotate", text="Rotate Edge CW").use_ccw = False
+
+        layout.separator()
+
+        # layout.operator("mesh.uvs_rotate")
+        # layout.operator("mesh.uvs_reverse")
+        # layout.operator("mesh.colors_rotate")
+        # layout.operator("mesh.colors_reverse")
+        layout.menu("VIEW3D_MT_redit_mesh_faces_misc")
+
+
+class VIEW3D_MT_redit_mesh_faces_misc(bpy.types.Menu):
+    bl_label = "Miscellaneous"
+
+    def draw(self, context):
+        layout = self.layout
+
+        layout.operator("mesh.uvs_rotate")
+        layout.operator("mesh.uvs_reverse")
+        layout.operator("mesh.colors_rotate")
+        layout.operator("mesh.colors_reverse")
+
+
+class VIEW3D_MT_rshape_keys_vertex_groups(bpy.types.Menu):
+    bl_label = "Object Data"
+
+    def draw(self, context):
+        layout = self.layout
+        layout.operator_context = 'INVOKE_REGION_WIN'
+
+        layout.operator("object.vertex_group_blend", text = "Blur Weights")
+
+        layout.separator()
+
+        layout.operator("mesh.blend_from_shape", text = "Morph to Shape Key")
+        layout.operator("mesh.shape_propagate_to_all", text = "Propagate Shape To Other Shape Keys")
+
+        layout.separator()
+
+        layout.menu("VIEW3D_MT_vertex_group")
+
+        layout.separator()
+
+        layout.operator_menu_enum("mesh.sort_elements", "type", text="Sort Elements...")
+
+        layout.operator("transform.translate", text = "Move Texture Space").texture_space = True
+        layout.operator("transform.resize", text = "Scale Texture Space").texture_space = True
+
+
+class VIEW3D_MT_redit_mesh_normals(bpy.types.Menu):
+    bl_label = "Normals/Shading"
+
+    def draw(self, context):
+        layout = self.layout
+
+        # layout.label("Normals:")
+        layout.operator("mesh.normals_make_consistent", text="Normals Recalculate Outside").inside = False
+        layout.operator("mesh.normals_make_consistent", text="Normals Recalculate Inside").inside = True
+
+        layout.operator("mesh.flip_normals")
+
+        layout.separator()
+
+        # layout.label("Shading:")
+
+        layout.operator("mesh.faces_shade_smooth")
+        layout.operator("mesh.faces_shade_flat")
+
+
+class VIEW3D_MT_rsymmetry(bpy.types.Menu):
+    bl_label = "Symmetry"
+
+    def draw(self, context):
+        layout = self.layout
+
+        layout.operator("mesh.symmetrize")
+        layout.operator("mesh.symmetry_snap")   
+
+
+class VIEW3D_MT_rselect_edit_mesh(bpy.types.Menu):
+    bl_label = "Select"
+
+    def draw(self, context):
+        layout = self.layout
+
+        layout.operator("view3d.select_border")
+        layout.operator("view3d.select_circle")
+
+        layout.separator()
+
+        # primitive
+        layout.operator("mesh.select_all").action = 'TOGGLE'
+        layout.operator("mesh.select_all", text="Invert Selection").action = 'INVERT'
+        layout.operator("mesh.select_linked", text="Linked")
+        layout.operator("mesh.shortest_path_select", text="Shortest Path")
+
+        layout.separator()
+        
+        layout.operator("mesh.loop_multi_select", text="Edge Loop").ring = False
+        layout.operator("mesh.loop_multi_select", text="Edge Ring").ring = True
+
+        layout.operator("mesh.loop_to_region")
+        layout.operator("mesh.region_to_loop")
+
+        layout.separator()
+
+        layout.operator("mesh.select_more", text="More")
+        layout.operator("mesh.select_less", text="Less")
+        
+        layout.separator()
+
+        layout.operator("mesh.select_mirror", text="Mirror")
+        layout.operator("mesh.select_axis", text="Side of Active")
+        
+        layout.separator()
+
+        # numeric
+        layout.operator("mesh.select_random", text="Random")
+        layout.operator("mesh.select_nth")
+
+        layout.separator()
+
+        # geometric
+        layout.operator("mesh.edges_select_sharp", text="Sharp Edges")
+        layout.operator("mesh.faces_select_linked_flat", text="Linked Flat Faces")
+
+        layout.separator()
+
+        # topology
+        layout.operator("mesh.select_loose", text="Loose Geometry")
+        if context.scene.tool_settings.mesh_select_mode[2] is False:
+            layout.operator("mesh.select_non_manifold", text="Non Manifold")
+        layout.operator("mesh.select_interior_faces", text="Interior Faces")
+        layout.operator("mesh.select_face_by_sides")
+
+        layout.separator()
+
+        # other ...
+        layout.operator_menu_enum("mesh.select_similar", "type", text="Similar")
+        layout.operator("mesh.select_ungrouped", text="Ungrouped Verts")
+
+
+
+
         
 #------------------- OPERATORS ------------------------------     
 
@@ -560,6 +1059,9 @@ class rPlace3DCursor(bpy.types.Operator):
         # if ray[0] == True:
 
         #    bpy.context.scene.cursor_location = ray[3]
+
+        
+        # bpy.ops.view3d.cursor3d()
         
         return {'FINISHED'}
 
@@ -597,7 +1099,7 @@ def register():
         kmi = km.keymap_items.new('wm.call_menu', 'ACTIONMOUSE', 'PRESS')
         kmi.properties.name = "VIEW3D_MT_rRMB"
         addon_keymaps.append((km, kmi))
-        kmi = km.keymap_items.new('view3d.cursor3d', 'ACTIONMOUSE', 'PRESS', alt=True)
+        kmi = km.keymap_items.new('view3d.cursor3d', 'RIGHTMOUSE', 'PRESS', alt=True)
         addon_keymaps.append((km, kmi))
 
 def unregister():
