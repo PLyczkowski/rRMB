@@ -47,78 +47,78 @@ def sceneupdate_handler(dummy):
         bpy.ops.rrmb.modal('INVOKE_DEFAULT')
 
 
-class SimpleMouseOperator(bpy.types.Operator):
-    """ This operator shows the mouse location,
-        this string is used for the tooltip and API docs
-    """
-    bl_idname = "wm.mouse_position"
-    bl_label = "Mouse Position"
+# class SimpleMouseOperator(bpy.types.Operator):
+#     """ This operator shows the mouse location,
+#         this string is used for the tooltip and API docs
+#     """
+#     bl_idname = "wm.mouse_position"
+#     bl_label = "Mouse Position"
 
-    x = bpy.props.IntProperty()
-    y = bpy.props.IntProperty()
+#     x = bpy.props.IntProperty()
+#     y = bpy.props.IntProperty()
 
-    def execute(self, context):
+#     def execute(self, context):
 
-        sidebar_width = list([r for r in bpy.context.area.regions if r.type == 'TOOLS'])[0].width
-        print(sidebar_width)
+#         sidebar_width = list([r for r in bpy.context.area.regions if r.type == 'TOOLS'])[0].width
+#         print(sidebar_width)
 
-        # for area in bpy.context.screen.areas:
-        #     if area.type=='VIEW_3D':
-        #         X= area.x
-        #         Y= area.y
-        #         WIDTH=area.width
-        #         HEIGHT=area.height
+#         # for area in bpy.context.screen.areas:
+#         #     if area.type=='VIEW_3D':
+#         #         X= area.x
+#         #         Y= area.y
+#         #         WIDTH=area.width
+#         #         HEIGHT=area.height
 
-        #         print(X,Y,WIDTH,HEIGHT)
+#         #         print(X,Y,WIDTH,HEIGHT)
 
-        X = bpy.context.area.x
-        Y = bpy.context.area.y
-        WIDTH = bpy.context.area.width
-        HEIGHT = bpy.context.area.height
+#         X = bpy.context.area.x
+#         Y = bpy.context.area.y
+#         WIDTH = bpy.context.area.width
+#         HEIGHT = bpy.context.area.height
 
-        print(X,Y,WIDTH,HEIGHT)
+#         print(X,Y,WIDTH,HEIGHT)
 
-        # rather then printing, use the report function,
-        # this way the message appears in the header,
-        self.report({'INFO'}, "Mouse coords are %d %d" % (self.x, self.y))
-        return {'FINISHED'}
+#         # rather then printing, use the report function,
+#         # this way the message appears in the header,
+#         self.report({'INFO'}, "Mouse coords are %d %d" % (self.x, self.y))
+#         return {'FINISHED'}
 
-    def invoke(self, context, event):
-        self.x = event.mouse_x
-        self.y = event.mouse_y
-        return self.execute(context)
+#     def invoke(self, context, event):
+#         self.x = event.mouse_x
+#         self.y = event.mouse_y
+#         return self.execute(context)
 
-class rTest(bpy.types.Operator):
+# class rTest(bpy.types.Operator):
     
-    bl_idname = "view3d.rtest"
-    bl_label = "rTest"
-    bl_description = "rTest"
-    bl_register = True
+#     bl_idname = "view3d.rtest"
+#     bl_label = "rTest"
+#     bl_description = "rTest"
+#     bl_register = True
 
-    @classmethod
-    def poll(cls, context):
-        return True
+#     @classmethod
+#     def poll(cls, context):
+#         return True
 
-    def execute(self, context):
+#     def execute(self, context):
 
-        print("Test")
+#         print("Test")
         
-        return {'FINISHED'}
+#         return {'FINISHED'}
 
-class rRMB(bpy.types.Operator):
-    """Create the RMB Menu"""
-    bl_idname = "view3d.rrmb"
-    bl_label = "rRMB Menu"
+# class rRMB(bpy.types.Operator):
+#     """Create the RMB Menu"""
+#     bl_idname = "view3d.rrmb"
+#     bl_label = "rRMB Menu"
 
-    @classmethod
-    def poll(cls, context):
-        return True
+#     @classmethod
+#     def poll(cls, context):
+#         return True
 
-    def execute(self, context):
+#     def execute(self, context):
 
-        bpy.ops.rTest()
+#         bpy.ops.rTest()
         
-        return {'FINISHED'}
+#         return {'FINISHED'}
 
 class draw_view3d_rRMB(bpy.types.Menu):
     bl_label = ""
@@ -1127,121 +1127,121 @@ class VIEW3D_MT_rmove_mesh_origin_nothing_selected(bpy.types.Menu):
 #------------------- OPERATORS ------------------------------   
 
 # Modal loop operator  
-class Modal(bpy.types.Operator):
-    bl_idname = "rrmb.modal"
-    bl_label = "Modal Loop"
-    bl_description = "Initiates a modal loop on addon enable"
-    bl_options = {"REGISTER"}
+# class Modal(bpy.types.Operator):
+#     bl_idname = "rrmb.modal"
+#     bl_label = "Modal Loop"
+#     bl_description = "Initiates a modal loop on addon enable"
+#     bl_options = {"REGISTER"}
     
-    def invoke(self, context, event):
+#     def invoke(self, context, event):
 
-        context.window_manager.modal_handler_add(self)
+#         context.window_manager.modal_handler_add(self)
 
-        return {'RUNNING_MODAL'}
+#         return {'RUNNING_MODAL'}
 
-    def modal(self, context, event):
+#     def modal(self, context, event):
     
-        global mousex, mousey, setcursor
+#         global mousex, mousey, setcursor
     
-        if event.type == 'RIGHTMOUSE':
-            mousex = event.mouse_x
-            mousey = event.mouse_y
+#         if event.type == 'RIGHTMOUSE':
+#             mousex = event.mouse_x
+#             mousey = event.mouse_y
 
-            print(mousex)
+#             print(mousex)
             
-        # if setcursor == 1 and event.type == 'MOUSEMOVE':
-        #     setcursor = 0
-        #     region = None
-        #     for a in context.screen.areas:
-        #         if not(a.type == "VIEW_3D"):
-        #             continue
-        #         for r in a.regions:
-        #             if not(r.type == "WINDOW"):
-        #                 continue
-        #             if mousex > r.x and mousey > r.y and mousex < r.x + r.width and mousey < r.y + r.height:
-        #                 region = r
-        #                 break
-        #         if region:
-        #             area = a
-        #             break
-        #     if region:
-        #         contextoverride = {'window': context.window, 'screen': context.screen, 'area': area, 'region': region, 'scene': context.scene, 'edit_object': context.edit_object, 'active_object': context.active_object, 'selected_objects': context.selected_objects}    
-        #         bpy.ops.view3d.cursor3d(contextoverride, 'INVOKE_DEFAULT')
+#         # if setcursor == 1 and event.type == 'MOUSEMOVE':
+#         #     setcursor = 0
+#         #     region = None
+#         #     for a in context.screen.areas:
+#         #         if not(a.type == "VIEW_3D"):
+#         #             continue
+#         #         for r in a.regions:
+#         #             if not(r.type == "WINDOW"):
+#         #                 continue
+#         #             if mousex > r.x and mousey > r.y and mousex < r.x + r.width and mousey < r.y + r.height:
+#         #                 region = r
+#         #                 break
+#         #         if region:
+#         #             area = a
+#         #             break
+#         #     if region:
+#         #         contextoverride = {'window': context.window, 'screen': context.screen, 'area': area, 'region': region, 'scene': context.scene, 'edit_object': context.edit_object, 'active_object': context.active_object, 'selected_objects': context.selected_objects}    
+#         #         bpy.ops.view3d.cursor3d(contextoverride, 'INVOKE_DEFAULT')
 
-        return {'PASS_THROUGH'}  
+#         return {'PASS_THROUGH'}  
 
-class rPlace3DCursor(bpy.types.Operator):
+# class rPlace3DCursor(bpy.types.Operator):
     
-    bl_idname = "view3d.rcursor3d"
-    bl_label = "rCursor3D"
-    bl_description = "rCursor3D"
-    bl_register = True
+#     bl_idname = "view3d.rcursor3d"
+#     bl_label = "rCursor3D"
+#     bl_description = "rCursor3D"
+#     bl_register = True
 
-    @classmethod
-    def poll(cls, context):
-        return True
+#     @classmethod
+#     def poll(cls, context):
+#         return True
 
-    def projectCursor(self, event):
+#     def projectCursor(self, event):
 
-        coord = mathutils.Vector((event.mouse_region_x, event.mouse_region_y))
+#         coord = mathutils.Vector((event.mouse_region_x, event.mouse_region_y))
 
-        transform = bpy_extras.view3d_utils.region_2d_to_location_3d
+#         transform = bpy_extras.view3d_utils.region_2d_to_location_3d
 
-        region = bpy.context.region
+#         region = bpy.context.region
 
-        rv3d = bpy.context.space_data.region_3d
+#         rv3d = bpy.context.space_data.region_3d
 
-        #### cursor used for the depth location of the mouse
+#         #### cursor used for the depth location of the mouse
 
-        depth_location = bpy.context.scene.cursor_location
+#         depth_location = bpy.context.scene.cursor_location
 
-        ### creating 3d vector from the cursor
+#         ### creating 3d vector from the cursor
 
-        end = transform(region, rv3d, coord, depth_location)
+#         end = transform(region, rv3d, coord, depth_location)
         
-        ### Viewport origin
+#         ### Viewport origin
 
-        start = bpy_extras.view3d_utils.region_2d_to_origin_3d(region, rv3d, coord)
+#         start = bpy_extras.view3d_utils.region_2d_to_origin_3d(region, rv3d, coord)
         
-        ### Cast ray from view to mouselocation
+#         ### Cast ray from view to mouselocation
 
-        ray = bpy.context.scene.ray_cast(start, start+(end-start)*2000)
+#         ray = bpy.context.scene.ray_cast(start, start+(end-start)*2000)
         
-        return start, end, ray
+#         return start, end, ray
 
-    def execute(self, context):
+#     def execute(self, context):
         
-        # TODO
+#         # TODO
 
-        # rayStart,rayEnd, ray = self.projectCursor(event)
+#         # rayStart,rayEnd, ray = self.projectCursor(event)
 
-        # if ray[0] == True:
+#         # if ray[0] == True:
 
-        #    bpy.context.scene.cursor_location = ray[3]
+#         #    bpy.context.scene.cursor_location = ray[3]
 
         
-        # bpy.ops.view3d.cursor3d()
+#         # bpy.ops.view3d.cursor3d()
         
-        return {'FINISHED'}
+#         return {'FINISHED'}
 
-class rMoveToLayer(bpy.types.Operator):
+# class rMoveToLayer(bpy.types.Operator):
     
-    bl_idname = "object.rmove_to_layer"
-    bl_label = "rMoveToLayer"
-    bl_description = "rMoveToLayer"
-    bl_register = True
+#     bl_idname = "object.rmove_to_layer"
+#     bl_label = "rMoveToLayer"
+#     bl_description = "rMoveToLayer"
+#     bl_register = True
 
-    @classmethod
-    def poll(cls, context):
-        return True
+#     @classmethod
+#     def poll(cls, context):
+#         return True
 
-    def execute(self, context):
+#     def execute(self, context):
 
-        # TODO
+#         # TODO
 
-        # bpy.ops.object.move_to_layer()
+#         # bpy.ops.object.move_to_layer()
         
-        return {'FINISHED'}
+#         return {'FINISHED'}
 
 class RMoveMeshOriginToSelection(bpy.types.Operator):
     '''Tooltip'''
@@ -1351,8 +1351,8 @@ def register():
     
     bpy.utils.register_module(__name__)
 
-    bpy.app.handlers.scene_update_post.append(sceneupdate_handler)
-    bpy.app.handlers.load_post.append(load_handler)
+    # bpy.app.handlers.scene_update_post.append(sceneupdate_handler)
+    # bpy.app.handlers.load_post.append(load_handler)
     
     wm = bpy.context.window_manager
     kc = wm.keyconfigs.addon
