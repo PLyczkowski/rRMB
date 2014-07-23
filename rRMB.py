@@ -28,14 +28,101 @@ bl_info = {
     "category": "3D View"}
 
 import bpy
+from bpy.app.handlers import persistent
 
-class rRMB(bpy.types.Menu):
+@persistent
+def load_handler(dummy):
+
+    global started
+    
+    started = False
+    
+@persistent
+def sceneupdate_handler(dummy):
+
+    global started, setcursor
+    
+    if not(started):
+        started = True
+        bpy.ops.rrmb.modal('INVOKE_DEFAULT')
+
+
+class SimpleMouseOperator(bpy.types.Operator):
+    """ This operator shows the mouse location,
+        this string is used for the tooltip and API docs
+    """
+    bl_idname = "wm.mouse_position"
+    bl_label = "Mouse Position"
+
+    x = bpy.props.IntProperty()
+    y = bpy.props.IntProperty()
+
+    def execute(self, context):
+
+        sidebar_width = list([r for r in bpy.context.area.regions if r.type == 'TOOLS'])[0].width
+        print(sidebar_width)
+
+        # for area in bpy.context.screen.areas:
+        #     if area.type=='VIEW_3D':
+        #         X= area.x
+        #         Y= area.y
+        #         WIDTH=area.width
+        #         HEIGHT=area.height
+
+        #         print(X,Y,WIDTH,HEIGHT)
+
+        X = bpy.context.area.x
+        Y = bpy.context.area.y
+        WIDTH = bpy.context.area.width
+        HEIGHT = bpy.context.area.height
+
+        print(X,Y,WIDTH,HEIGHT)
+
+        # rather then printing, use the report function,
+        # this way the message appears in the header,
+        self.report({'INFO'}, "Mouse coords are %d %d" % (self.x, self.y))
+        return {'FINISHED'}
+
+    def invoke(self, context, event):
+        self.x = event.mouse_x
+        self.y = event.mouse_y
+        return self.execute(context)
+
+class rTest(bpy.types.Operator):
+    
+    bl_idname = "view3d.rtest"
+    bl_label = "rTest"
+    bl_description = "rTest"
+    bl_register = True
+
+    @classmethod
+    def poll(cls, context):
+        return True
+
+    def execute(self, context):
+
+        print("Test")
+        
+        return {'FINISHED'}
+
+class rRMB(bpy.types.Operator):
+    """Create the RMB Menu"""
+    bl_idname = "view3d.rrmb"
+    bl_label = "rRMB Menu"
+
+    @classmethod
+    def poll(cls, context):
+        return True
+
+    def execute(self, context):
+
+        bpy.ops.rTest()
+        
+        return {'FINISHED'}
+
+class draw_view3d_rRMB(bpy.types.Menu):
     bl_label = ""
     bl_idname = "VIEW3D_MT_rRMB"
-
-    def clicked_on_view(self, context):
-
-        print()
 
     def draw(self, context):
         
@@ -44,9 +131,15 @@ class rRMB(bpy.types.Menu):
         edit_object = context.edit_object
         layout = self.layout
         selected = context.selected_objects
+
+        #
+
+        # check_mouse_position()
         
         #Menus in All Modes
         
+        # layout.operator("view3d.rtest")
+
         layout.operator("view3d.cursor3d", text="Place 3d Cursor", icon="CURSOR")
         # layout.operator("view3d.rcursor3d", text="Place 3d Cursor", icon="CURSOR")
         layout.menu("VIEW3D_MT_rmovecursor")
@@ -89,6 +182,8 @@ class rRMB(bpy.types.Menu):
 
                     layout.menu("VIEW3D_MT_rdeform")
 
+                    layout.menu("VIEW3D_MT_rmove_mesh_origin")
+
                     layout.separator()
         
                     layout.menu("VIEW3D_MT_redit_mesh_vertices")
@@ -128,6 +223,8 @@ class rRMB(bpy.types.Menu):
                     #--- Mesh With Nothing Selected
 
                     layout.menu("VIEW3D_MT_rcut_nothing_selected")
+
+                    layout.menu("VIEW3D_MT_rmove_mesh_origin_nothing_selected")
 
                     layout.separator()
 
@@ -1005,11 +1102,73 @@ class VIEW3D_MT_rselect_edit_mesh(bpy.types.Menu):
         layout.operator_menu_enum("mesh.select_similar", "type", text="Similar")
         layout.operator("mesh.select_ungrouped", text="Ungrouped Verts")
 
+class VIEW3D_MT_rmove_mesh_origin(bpy.types.Menu):
 
+    bl_label = "Move Origin"
 
+    def draw(self, context):
+        layout = self.layout
 
+        layout.operator("object.rmove_mesh_origin_to_selection")
+        layout.operator("object.rmove_mesh_origin_to_cursor")
+        layout.operator("object.rmove_mesh_origin_to_center")
+
+class VIEW3D_MT_rmove_mesh_origin_nothing_selected(bpy.types.Menu):
+
+    bl_label = "Move Origin"
+
+    def draw(self, context):
+        layout = self.layout
+
+        layout.operator("object.rmove_mesh_origin_to_cursor")
+        layout.operator("object.rmove_mesh_origin_to_center")
         
-#------------------- OPERATORS ------------------------------     
+        
+#------------------- OPERATORS ------------------------------   
+
+# Modal loop operator  
+class Modal(bpy.types.Operator):
+    bl_idname = "rrmb.modal"
+    bl_label = "Modal Loop"
+    bl_description = "Initiates a modal loop on addon enable"
+    bl_options = {"REGISTER"}
+    
+    def invoke(self, context, event):
+
+        context.window_manager.modal_handler_add(self)
+
+        return {'RUNNING_MODAL'}
+
+    def modal(self, context, event):
+    
+        global mousex, mousey, setcursor
+    
+        if event.type == 'RIGHTMOUSE':
+            mousex = event.mouse_x
+            mousey = event.mouse_y
+
+            print(mousex)
+            
+        # if setcursor == 1 and event.type == 'MOUSEMOVE':
+        #     setcursor = 0
+        #     region = None
+        #     for a in context.screen.areas:
+        #         if not(a.type == "VIEW_3D"):
+        #             continue
+        #         for r in a.regions:
+        #             if not(r.type == "WINDOW"):
+        #                 continue
+        #             if mousex > r.x and mousey > r.y and mousex < r.x + r.width and mousey < r.y + r.height:
+        #                 region = r
+        #                 break
+        #         if region:
+        #             area = a
+        #             break
+        #     if region:
+        #         contextoverride = {'window': context.window, 'screen': context.screen, 'area': area, 'region': region, 'scene': context.scene, 'edit_object': context.edit_object, 'active_object': context.active_object, 'selected_objects': context.selected_objects}    
+        #         bpy.ops.view3d.cursor3d(contextoverride, 'INVOKE_DEFAULT')
+
+        return {'PASS_THROUGH'}  
 
 class rPlace3DCursor(bpy.types.Operator):
     
@@ -1083,6 +1242,106 @@ class rMoveToLayer(bpy.types.Operator):
         # bpy.ops.object.move_to_layer()
         
         return {'FINISHED'}
+
+class RMoveMeshOriginToSelection(bpy.types.Operator):
+    '''Tooltip'''
+    bl_description = "Move Origin to Selection."
+    bl_idname = "object.rmove_mesh_origin_to_selection"
+    bl_label = "Move Origin To Selection"
+
+    @classmethod
+    def poll(cls, context):
+
+        return context.active_object is not None
+
+    def execute(self, context):
+        
+        bpy.ops.object.editmode_toggle()
+
+        selected = context.selected_objects
+        obj = context.active_object
+        objects = bpy.data.objects
+        bpy.ops.object.select_all(action='DESELECT')
+        context.active_object.select = True
+    
+        storeCursorX = context.space_data.cursor_location.x
+        storeCursorY = context.space_data.cursor_location.y
+        storeCursorZ = context.space_data.cursor_location.z
+        
+        bpy.ops.object.editmode_toggle()
+        
+        bpy.ops.view3d.snap_cursor_to_selected()
+        
+        bpy.ops.object.editmode_toggle()
+        
+        bpy.ops.object.origin_set(type='ORIGIN_CURSOR', center='MEDIAN')
+        
+        context.space_data.cursor_location.x = storeCursorX
+        context.space_data.cursor_location.y = storeCursorY
+        context.space_data.cursor_location.z = storeCursorZ
+        
+        for obj in selected:
+            obj.select = True
+        bpy.ops.object.editmode_toggle()
+
+        return {'FINISHED'}
+
+class RMoveMeshOriginToCursor(bpy.types.Operator):
+    '''Tooltip'''
+    bl_description = "Move Origin to Cursor."
+    bl_idname = "object.rmove_mesh_origin_to_cursor"
+    bl_label = "Move Origin To Cursor"
+
+    @classmethod
+    def poll(cls, context):
+        return True
+
+    def execute(self, context):
+        
+        bpy.ops.object.editmode_toggle()
+
+        selected = context.selected_objects
+        obj = context.active_object
+        objects = bpy.data.objects
+        bpy.ops.object.select_all(action='DESELECT')
+        context.active_object.select = True
+        
+        bpy.ops.object.origin_set(type='ORIGIN_CURSOR')
+        
+        for obj in selected:
+            obj.select = True
+        bpy.ops.object.editmode_toggle()
+
+        return {'FINISHED'}
+
+class RMoveMeshOriginToCenter(bpy.types.Operator):
+    '''Tooltip'''
+    bl_description = "Move Origin to Center."
+    bl_idname = "object.rmove_mesh_origin_to_center"
+    bl_label = "Move Origin To Center"
+
+    @classmethod
+    def poll(cls, context):
+        return True
+
+    def execute(self, context):
+        
+        bpy.ops.object.editmode_toggle()
+
+        selected = context.selected_objects
+        obj = context.active_object
+        objects = bpy.data.objects
+        bpy.ops.object.select_all(action='DESELECT')
+        context.active_object.select = True
+        
+        bpy.ops.object.transform_apply(location=True, rotation=False, scale=False)
+
+        for obj in selected:
+            obj.select = True
+        bpy.ops.object.editmode_toggle()
+
+        return {'FINISHED'}
+
         
 #------------------- REGISTER ------------------------------     
 
@@ -1091,20 +1350,40 @@ addon_keymaps = []
 def register():
     
     bpy.utils.register_module(__name__)
+
+    bpy.app.handlers.scene_update_post.append(sceneupdate_handler)
+    bpy.app.handlers.load_post.append(load_handler)
     
     wm = bpy.context.window_manager
     kc = wm.keyconfigs.addon
     if kc:
+
+        #Direct Menu Call
         km = kc.keymaps.new(name='3D View', space_type='VIEW_3D')
         kmi = km.keymap_items.new('wm.call_menu', 'ACTIONMOUSE', 'PRESS')
         kmi.properties.name = "VIEW3D_MT_rRMB"
         addon_keymaps.append((km, kmi))
+
+        # Use the operator.
+        # km = kc.keymaps.new(name='3D View', space_type='VIEW_3D')
+        # kmi = km.keymap_items.new(rRMB.bl_idname, 'ACTIONMOUSE', 'PRESS')
+
+        # Set Cursor
         kmi = km.keymap_items.new('view3d.cursor3d', 'RIGHTMOUSE', 'PRESS', alt=True)
         addon_keymaps.append((km, kmi))
+
+        # Node Editor
+        # km = kc.keymaps.new(name='Node Editor', space_type='NODE_EDITOR')
+        # kmi = km.keymap_items.new('wm.call_menu', 'ACTIONMOUSE', 'PRESS')
+        # # kmi.properties.name = "VIEW3D_MT_rRMB"
+        # addon_keymaps.append((km, kmi))
 
 def unregister():
     
     bpy.utils.unregister_module(__name__)
+
+    bpy.app.handlers.scene_update_post.remove(sceneupdate_handler)
+    bpy.app.handlers.load_post.remove(load_handler)
     
     wm = bpy.context.window_manager
     for km, kmi in addon_keymaps:
@@ -1113,3 +1392,4 @@ def unregister():
         
 if __name__ == "__main__":
     register()
+
