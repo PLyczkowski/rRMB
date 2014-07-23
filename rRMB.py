@@ -30,21 +30,21 @@ bl_info = {
 import bpy
 from bpy.app.handlers import persistent
 
-@persistent
-def load_handler(dummy):
+# @persistent
+# def load_handler(dummy):
 
-    global started
+#     global started
     
-    started = False
+#     started = False
     
-@persistent
-def sceneupdate_handler(dummy):
+# @persistent
+# def sceneupdate_handler(dummy):
 
-    global started, setcursor
+#     global started, setcursor
     
-    if not(started):
-        started = True
-        bpy.ops.rrmb.modal('INVOKE_DEFAULT')
+#     if not(started):
+#         started = True
+#         bpy.ops.rrmb.modal('INVOKE_DEFAULT')
 
 
 # class SimpleMouseOperator(bpy.types.Operator):
@@ -386,6 +386,7 @@ class draw_view3d_rRMB(bpy.types.Menu):
                 #layout.separator()
 
                 layout.operator("object.join")
+                layout.operator("object.rseparate")
                 layout.operator("object.duplicate_move", text="Duplicate")
                 layout.operator("object.duplicate_move_linked")
                 layout.operator("view3d.copybuffer", text="Copy")
@@ -1342,6 +1343,47 @@ class RMoveMeshOriginToCenter(bpy.types.Operator):
 
         return {'FINISHED'}
 
+class RSeparate(bpy.types.Operator):
+    '''Tooltip'''
+    bl_description = "Divide mesh."
+    bl_idname = "object.rseparate"
+    bl_label = "Separate"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    separate_by = bpy.props.EnumProperty(name = "Separate By:",
+        items = (('loose_parts', "Loose Parts", "Separates by loose parts."),
+            ('material', "Material", "Separates by material.")),
+        description = "Choose the separation criteria.",
+        default = 'loose_parts')
+
+    origin_to_center = bpy.props.BoolProperty(name="Move Origins To Centers", default=False)
+
+    @classmethod
+    def poll(cls, context):
+        return context.active_object is not None
+
+    def execute(self, context):
+
+        selected = context.selected_objects
+        obj = context.active_object
+        objects = bpy.data.objects
+
+        bpy.ops.object.select_all(action='DESELECT')
+        context.active_object.select = True
+
+        bpy.ops.object.editmode_toggle()
+        bpy.ops.mesh.select_all(action='SELECT')
+        if self.separate_by == "loose_parts":
+            bpy.ops.mesh.separate(type='LOOSE')
+        elif self.separate_by == "material":
+            bpy.ops.mesh.separate(type='MATERIAL')
+        bpy.ops.object.editmode_toggle()
+
+        if self.origin_to_center:
+            bpy.ops.object.origin_set(type='ORIGIN_GEOMETRY')
+
+        return {'FINISHED'}
+
         
 #------------------- REGISTER ------------------------------     
 
@@ -1382,8 +1424,8 @@ def unregister():
     
     bpy.utils.unregister_module(__name__)
 
-    bpy.app.handlers.scene_update_post.remove(sceneupdate_handler)
-    bpy.app.handlers.load_post.remove(load_handler)
+    # bpy.app.handlers.scene_update_post.remove(sceneupdate_handler)
+    # bpy.app.handlers.load_post.remove(load_handler)
     
     wm = bpy.context.window_manager
     for km, kmi in addon_keymaps:
