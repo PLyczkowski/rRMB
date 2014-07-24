@@ -388,7 +388,11 @@ class draw_view3d_rRMB(bpy.types.Menu):
                 #layout.separator()
 
                 layout.operator("object.join")
+                # if obj.type.lower() == "mesh":
                 layout.operator("object.rseparate")
+                # else:
+                #     # layout.operator("object.rseparate").enabled = False
+                #     pass
                 layout.operator("object.duplicate_move", text="Duplicate")
                 layout.operator("object.duplicate_move_linked")
                 layout.operator("view3d.copybuffer", text="Copy")
@@ -1362,7 +1366,10 @@ class RSeparate(bpy.types.Operator):
 
     @classmethod
     def poll(cls, context):
-        return context.active_object is not None
+        obj = context.active_object
+        obj_type = obj.type
+        # return(obj and obj_type in {'MESH', 'CURVE', 'SURFACE', 'ARMATURE', 'FONT', 'LATTICE'} and context.mode == 'OBJECT')
+        return(obj and obj_type in {'MESH'} and context.mode == 'OBJECT')
 
     def execute(self, context):
 
