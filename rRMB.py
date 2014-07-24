@@ -19,7 +19,7 @@
 bl_info = {
     "name": "rRMB Menu",
     "author": "Paweł Łyczkowski",
-    "version": (0.5),
+    "version": (0,5),
     "blender": (2, 70, 0),
     "location": "View3D > RMB",
     "description": "Adds an RMB menu.",
@@ -356,6 +356,8 @@ class draw_view3d_rRMB(bpy.types.Menu):
             if len(selected)>0:
 
                 layout.separator()
+
+                layout.operator("tools.mydialog")
 
                 layout.menu("VIEW3D_MT_select_object")
                 
@@ -1381,6 +1383,22 @@ class RSeparate(bpy.types.Operator):
 
         if self.origin_to_center:
             bpy.ops.object.origin_set(type='ORIGIN_GEOMETRY')
+
+        return {'FINISHED'}
+
+class MyDialog(bpy.types.Operator):
+
+    bl_idname = "tools.mydialog"
+    bl_label = "My Dialog"
+
+    string_prop = bpy.props.StringProperty(name="String Prop")
+
+    def invoke(self, context, event):
+        return context.window_manager.invoke_props_dialog(self)
+
+    def execute(self, context):
+
+
 
         return {'FINISHED'}
 
