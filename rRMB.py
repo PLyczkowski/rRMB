@@ -388,11 +388,7 @@ class draw_view3d_rRMB(bpy.types.Menu):
                 #layout.separator()
 
                 layout.operator("object.join")
-                # if obj.type.lower() == "mesh":
                 layout.operator("object.rseparate")
-                # else:
-                #     # layout.operator("object.rseparate").enabled = False
-                #     pass
                 layout.operator("object.duplicate_move", text="Duplicate")
                 layout.operator("object.duplicate_move_linked")
                 layout.operator("view3d.copybuffer", text="Copy")
