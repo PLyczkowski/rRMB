@@ -357,7 +357,7 @@ class draw_view3d_rRMB(bpy.types.Menu):
 
                 layout.separator()
 
-                layout.operator("tools.mydialog")
+                # layout.operator("tools.mydialog")
 
                 layout.menu("VIEW3D_MT_select_object")
                 
