@@ -1107,7 +1107,7 @@ class VIEW3D_MT_rselect_edit_mesh(bpy.types.Menu):
 
 class VIEW3D_MT_rmove_mesh_origin(bpy.types.Menu):
 
-    bl_label = "Move Origin"
+    bl_label = "Move Origin/Orientation"
 
     def draw(self, context):
         layout = self.layout
@@ -1115,6 +1115,10 @@ class VIEW3D_MT_rmove_mesh_origin(bpy.types.Menu):
         layout.operator("object.rmove_mesh_origin_to_selection")
         layout.operator("object.rmove_mesh_origin_to_cursor")
         layout.operator("object.rmove_mesh_origin_to_center")
+
+        layout.separator()
+
+        layout.operator("object.ralign_orientation_to_face")
 
 class VIEW3D_MT_rmove_mesh_origin_nothing_selected(bpy.types.Menu):
 
@@ -1389,6 +1393,65 @@ class RSeparate(bpy.types.Operator):
 
         return {'FINISHED'}
 
+class RAlignOrientationToFace(bpy.types.Operator):
+    '''Tooltip'''
+    bl_description = "Align object's orientation to the selected face."
+    bl_idname = "object.ralign_orientation_to_face"
+    bl_label = "Align Orientation To Face"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    @classmethod
+    def poll(cls, context):
+        obj = context.active_object
+        obj_type = obj.type
+        # return(obj and obj_type in {'MESH', 'CURVE', 'SURFACE', 'ARMATURE', 'FONT', 'LATTICE'} and context.mode == 'OBJECT')
+        return(obj and obj_type in {'MESH'})
+
+    def execute(self, context):
+
+        selected = context.selected_objects
+        obj = context.active_object
+        objects = bpy.data.objects
+        storeCursorX = context.space_data.cursor_location.x
+        storeCursorY = context.space_data.cursor_location.y
+        storeCursorZ = context.space_data.cursor_location.z
+
+        #Create custom orientation
+        bpy.context.space_data.transform_orientation = 'NORMAL'
+        bpy.ops.transform.create_orientation(name="rOrientation", use=True, overwrite=True)
+        bpy.ops.view3d.snap_cursor_to_selected()
+
+        bpy.ops.object.editmode_toggle()
+
+        #Add empty aligned to the orientation
+        bpy.ops.object.select_all(action='DESELECT')
+        bpy.ops.object.empty_add(type='PLAIN_AXES', view_align=False, layers=(True, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False))
+        empty = context.selected_objects
+        bpy.ops.transform.transform(mode='ALIGN', value=(0, 0, 0, 0), axis=(0, 0, 0), constraint_axis=(False, False, False), constraint_orientation='rOrientation', mirror=False, proportional='DISABLED', proportional_edit_falloff='SMOOTH', proportional_size=1)
+
+        #Copy Rotation from empty
+        obj.select = True
+        SetLocalTransformRotation(context)
+
+        #Delete empty
+        bpy.ops.object.select_all(action='DESELECT')
+        for obj in empty:
+            obj.select = True
+        bpy.ops.object.delete(use_global=False)
+
+        #Restore state
+        bpy.ops.object.select_all(action='DESELECT')
+        for obj in selected:
+            obj.select = True
+        bpy.context.scene.objects.active = obj
+        context.space_data.cursor_location.x = storeCursorX
+        context.space_data.cursor_location.y = storeCursorY
+        context.space_data.cursor_location.z = storeCursorZ
+
+        bpy.ops.object.editmode_toggle()
+
+        return {'FINISHED'}
+
 class MyDialog(bpy.types.Operator):
 
     bl_idname = "tools.mydialog"
@@ -1405,8 +1468,169 @@ class MyDialog(bpy.types.Operator):
 
         return {'FINISHED'}
 
+
+#------------------- FUNCTIONS ------------------------------ 
+
+
+def SetLocalTransformRotation(context):
+
+    context.space_data.use_pivot_point_align = False
+    context.space_data.transform_orientation = 'LOCAL'
+    amount_selected = len(bpy.context.selected_objects)
+    
+    if amount_selected >= 1:
+    
+        empty_exists, source_empty = GetSourceEmpty(context)
+  
+        if amount_selected > 1:
         
+            # bpy.ops.object.transform_apply works on all the selected objects, but we don't want that.
+            #So deselect all first, and later reselect all again.
+            original_selected_objects = bpy.context.selected_objects
+            
+            for i in bpy.context.selected_objects:
+                i.select = False
+
+            #Loop through all the objects which were previously selected 
+            for i in original_selected_objects:
+
+                #Only set the object if the current object is not the active object at the same time
+                if context.active_object != i:
+                
+                    i.select = True
+                    
+                    i.rotation_mode = 'QUATERNION'
+                    
+                    #Store the start rotation of the selected object
+                    rotation_before = i.matrix_world.to_quaternion()
+                    
+                    #Remove any parents. If an Object is a child of another object, the
+                    #Local Transform orientation settings will be messed up
+                    RemoveParent(context, i)
+
+                    #Align the rotation of the selected object with the rotation of the active object
+                    bpy.ops.transform.transform(mode='ALIGN')
+                    
+                    
+                    #Store the rotation of the selected object after it has been rotated
+                    rotation_after = i.matrix_world.to_quaternion()
+                    
+                    #Calculate the difference in rotation from before to after the rotation
+                    rotation_difference = rotation_before.rotation_difference(rotation_after)
+
+                    #Rotate the object the opposite way as done with the ALIGN function
+                    i.rotation_quaternion = rotation_difference.inverted()
+                    
+                    
+                    obj = context.active_object 
+                    context.scene.objects.active = i
+                    obj.select = False
+                    
+                   
+                    #Align the local rotation of all the selected objects with the global world orientation 
+                    bpy.ops.object.transform_apply(rotation = True)
+                    
+                    obj.select = True
+                    context.scene.objects.active = obj
+                    
+                    #Set the roation of the selected object to the rotation of the active object
+                    i.rotation_quaternion = context.active_object.matrix_world.to_quaternion()
+                    
+                    #Deselect again
+                    i.select = False
+                    
+            #restore selected objects
+            for i in original_selected_objects:
+                i.select = True        
+
+        if(amount_selected == 1) and (empty_exists == True) and IsMatrixRightHanded(source_empty.matrix_world):
+        
+            context.active_object.rotation_mode = 'QUATERNION' 
+            
+            #Store the start rotation of the selected object
+            rotation_before = context.active_object.matrix_world.to_quaternion()
+            
+            RemoveParent(context, context.active_object)
+   
+            obj = context.active_object        
+            source_empty.select = True 
+            context.scene.objects.active = source_empty
+            
+            #Align the rotation of the selected object with the rotation of the active object
+            bpy.ops.transform.transform(mode='ALIGN')
+            
+            #Set the Object to active
+            source_empty.select = False
+            context.scene.objects.active = obj 
+            
+            #Store the rotation of the selected object after it has been rotated
+            rotation_after = context.active_object.matrix_world.to_quaternion()
+            
+            #Calculate the difference in rotation from before to after the rotation
+            rotation_difference = rotation_before.rotation_difference(rotation_after)
+
+            #Rotate the object the opposite way as done with the ALIGN function
+            context.active_object.rotation_quaternion = rotation_difference.inverted()
+
+            #Align the local rotation of the selected object with the global world orientation 
+            bpy.ops.object.transform_apply(rotation = True)
+
+            #Set the rotation of the selected object to the rotation of the active object
+            context.active_object.rotation_quaternion = source_empty.matrix_world.to_quaternion()
+
+def GetSourceEmpty(context):
+
+    amount_selected = len(bpy.context.selected_objects)
+    
+    if amount_selected >= 1:
+    
+        if amount_selected == 1:
+    
+            #Check whether the active object has an empty 
+            name = "Empty." + context.active_object.name
+            try:
+                obj = bpy.data.objects[name]
+            except KeyError:
+                return False, bpy.ops.object
+            else:        
+                return True, obj
+                
+        if amount_selected > 1:
+            return True, context.active_object
+            
+    else:
+        return False, bpy.ops.object
+
+def IsMatrixRightHanded(mat):
+
+    x = mat.col[0].to_3d()
+    y = mat.col[1].to_3d()
+    z = mat.col[2].to_3d()
+    check_vector = x.cross(y)
+    
+    #If the coordinate system is right handed, the angle between z and check_vector
+    #should be 0, but we will use 0.1 to take rounding errors into account
+    angle = z.angle(check_vector)
+    
+    if angle <= 0.1:
+        return True
+    else:
+        errorStorage.SetError(ErrorMessage.not_right_handed)
+        return False
+
+#Remove the parent (put object in root)
+def RemoveParent(context, obj):
+
+    #Remove any parents. If an Object is a child of another object, the
+    #Local Transform orientation settings will be messed up if it is changed
+    active_obj = context.active_object
+    bpy.context.scene.objects.active = obj
+    bpy.ops.object.parent_clear(type='CLEAR_KEEP_TRANSFORM')
+    bpy.context.scene.objects.active = active_obj
+  
+
 #------------------- REGISTER ------------------------------     
+
 
 addon_keymaps = []
 
