@@ -1629,6 +1629,91 @@ def RemoveParent(context, obj):
     bpy.context.scene.objects.active = active_obj
   
 
+
+
+# =============================================================================
+#  NODES EDITOR
+# =============================================================================
+
+class NODE_MT_rRMB(bpy.types.Menu):
+    """ Right-click Menu for the Nodes Editor """
+    
+    bl_label = ""
+    bl_idname = "NODE_MT_rRMB"
+
+    def draw(self, context):
+        layout = self.layout
+        selected = context.selected_nodes
+        active = bpy.context.active_node
+
+        layout.menu("NODE_MT_add")
+
+        # NODE SPECIFICS
+        if selected:
+            layout.separator()
+            layout.operator("node.hide_toggle")
+            layout.operator("node.mute_toggle")
+            layout.separator()
+            layout.operator("node.delete")
+            layout.operator("node.delete_reconnect", text="Delete and Reconnect")
+            layout.operator("node.duplicate_move")
+
+
+        # FRAME
+        layout.separator()
+        layout.operator("node.join", text="Add to Frame")
+        layout.operator("node.detach", text="Remove from Frame")
+
+
+        # SELECT
+        layout.separator()
+        layout.operator("node.select_all").action = 'TOGGLE'
+        layout.menu("NODE_MT_rRMB_select", text="Select")
+
+        # GROUP
+        layout.separator()
+
+        if is_group_in_selected(selected):
+            layout.operator("node.group_edit")
+            layout.operator("node.group_ungroup")
+            layout.operator("node.group_make")
+        else:
+            layout.operator("node.group_make")
+
+ 
+
+
+class NODE_MT_rRMB_select(bpy.types.Menu):
+    """ Select submenu for the node editor"""
+    
+    bl_label = ""
+    bl_idname = "NODE_MT_rRMB_select"
+
+    def draw(self, context):
+        layout = self.layout
+
+        layout.operator("node.select_border")
+        layout.operator("node.select_all", text="Inverse").action = 'INVERT'
+        layout.separator()
+        layout.operator("node.select_linked_from")
+        layout.operator("node.select_linked_to")
+        layout.operator("node.select_same_type")
+
+
+
+def is_group_in_selected(selected_nodes):
+    """ Function to test if there's a group in the selected nodes """
+
+    groups = "CompositorNodeGroup", "ShaderNodeGroup", "TextureNodeGroup"
+    result = False
+
+    for node in selected_nodes:
+        if node.bl_idname in groups:
+            result = True
+
+    return result        
+
+
 #------------------- REGISTER ------------------------------     
 
 
@@ -1660,10 +1745,10 @@ def register():
         addon_keymaps.append((km, kmi))
 
         # Node Editor
-        # km = kc.keymaps.new(name='Node Editor', space_type='NODE_EDITOR')
-        # kmi = km.keymap_items.new('wm.call_menu', 'ACTIONMOUSE', 'PRESS')
-        # # kmi.properties.name = "VIEW3D_MT_rRMB"
-        # addon_keymaps.append((km, kmi))
+        km = kc.keymaps.new(name='Node Editor', space_type='NODE_EDITOR')
+        kmi = km.keymap_items.new('wm.call_menu', 'ACTIONMOUSE', 'PRESS')
+        kmi.properties.name = "NODE_MT_rRMB"
+        addon_keymaps.append((km, kmi))
 
 def unregister():
     
