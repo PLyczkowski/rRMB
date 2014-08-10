@@ -30,6 +30,8 @@ bl_info = {
 import bpy
 from bpy.app.handlers import persistent
 
+import inspect
+
 # @persistent
 # def load_handler(dummy):
 
@@ -1646,39 +1648,69 @@ class NODE_MT_rRMB(bpy.types.Menu):
         selected = context.selected_nodes
         active = bpy.context.active_node
 
-        layout.menu("NODE_MT_add")
+        if is_a_node_selected():
 
-        # NODE SPECIFICS
-        if selected:
+            layout.menu("NODE_MT_add")
+
+            # NODE SPECIFICS
+            if selected:
+                layout.separator()
+                layout.operator("node.hide_toggle")
+                layout.operator("node.mute_toggle")
+                layout.separator()
+                layout.operator("node.delete")
+                layout.operator("node.delete_reconnect", text="Delete and Reconnect")
+                layout.operator("node.duplicate_move")
+
+
+            # FRAME
             layout.separator()
-            layout.operator("node.hide_toggle")
-            layout.operator("node.mute_toggle")
+            layout.operator("node.join", text="Add to Frame")
+            layout.operator("node.detach", text="Remove from Frame")
+
+
+            # SELECT
             layout.separator()
-            layout.operator("node.delete")
-            layout.operator("node.delete_reconnect", text="Delete and Reconnect")
-            layout.operator("node.duplicate_move")
+            layout.operator("node.select_all").action = 'TOGGLE'
+            layout.menu("NODE_MT_rRMB_select", text="Select")
 
+            # GROUP
+            layout.separator()
 
-        # FRAME
-        layout.separator()
-        layout.operator("node.join", text="Add to Frame")
-        layout.operator("node.detach", text="Remove from Frame")
-
-
-        # SELECT
-        layout.separator()
-        layout.operator("node.select_all").action = 'TOGGLE'
-        layout.menu("NODE_MT_rRMB_select", text="Select")
-
-        # GROUP
-        layout.separator()
-
-        if is_group_in_selected(selected):
-            layout.operator("node.group_edit")
-            layout.operator("node.group_ungroup")
-            layout.operator("node.group_make")
+            if is_group_in_selected(selected):
+                layout.operator("node.group_edit")
+                layout.operator("node.group_ungroup")
+                layout.operator("node.group_make")
+            else:
+                layout.operator("node.group_make")
         else:
-            layout.operator("node.group_make")
+            layout.operator_context = 'INVOKE_DEFAULT'
+            props = layout.operator("node.add_search", text="Search ...")
+            props.use_transform = True
+
+            # FIXME: Boy is this ugly... should be saved in a dict at the start, not every redraw
+            # FIXME: Dies if use_nodes is not set in the scene
+            # FIXME: BI nodes don't work??
+
+            # Generate the nodes categories
+            for name,value in inspect.getmembers(bpy.types, is_node_category):
+                print(name)
+                if name.find('_CMP_') > 0 and context.space_data.tree_type == 'CompositorNodeTree':
+                    layout.menu(name)
+                if name.find('_SH_NEW_') > 0 and context.space_data.tree_type == 'ShaderNodeTree':
+                    layout.menu(name)
+                if name.find('_TEX_') > 0 and context.space_data.tree_type == 'TextureNodeTree':
+                    layout.menu(name)
+                if ( name.find('_SH_',0,19) > 0 and context.space_data.tree_type == 'TextureNodeTree' 
+                                            and not context.scene.render.use_shading_nodes):
+                    layout.menu(name)
+
+
+            # SELECT
+            layout.separator()
+            layout.operator("node.select_all").action = 'TOGGLE'
+            layout.menu("NODE_MT_rRMB_select", text="Select")
+
 
  
 
@@ -1699,6 +1731,29 @@ class NODE_MT_rRMB_select(bpy.types.Menu):
         layout.operator("node.select_linked_to")
         layout.operator("node.select_same_type")
 
+
+
+def is_node_category(obj):
+    """ Check if a class is a node category """
+    index = str(obj).find('NODE_MT_category_')
+
+    if index < 0:
+        return False
+    else:
+        return True
+
+
+def is_a_node_selected():
+    """ Function to check if there's any node selected """
+
+    nodes = bpy.context.scene.node_tree.nodes
+    output = False
+
+    for node in nodes:
+        if node.select:
+            output = True 
+
+    return output
 
 
 def is_group_in_selected(selected_nodes):
