@@ -1637,6 +1637,111 @@ def RemoveParent(context, obj):
 #  NODES EDITOR
 # =============================================================================
 
+
+def is_node_category(obj):
+    """ Check if a class is a node category """
+    index = str(obj).find('NODE_MT_category_')
+
+    if index < 0:
+        return False
+    else:
+        return True
+
+
+def debug_print_node_cats():
+    """ This is a debug function to find the node category menu classes """
+
+    node_cats = {}
+    node_cats['CompositorNodeTree'] = []
+    node_cats['ShaderNodeTree'] = []
+    node_cats['ShaderNodeTree_old'] = []
+    node_cats['TextureNodeTree'] = []
+
+    for name,value in inspect.getmembers(bpy.types, is_node_category):
+        if name.find('_CMP_') > 0:
+            node_cats['CompositorNodeTree'].append(name)
+        elif name.find('_SH_NEW_') > 0:
+            node_cats['ShaderNodeTree'].append(name)
+        elif name.find('_TEX_') > 0:
+            node_cats['TextureNodeTree'].append(name)
+        else:
+            node_cats['ShaderNodeTree_old'].append(name)
+
+    print(node_cats)
+
+
+
+def is_group_in_selected(selected_nodes):
+    """ Function to test if there's a group in the selected nodes """
+
+    groups = "CompositorNodeGroup", "ShaderNodeGroup", "TextureNodeGroup"
+    result = False
+
+    for node in selected_nodes:
+        if node.bl_idname in groups:
+            result = True
+
+    return result        
+
+
+
+# Build the nodes categories for the add menu
+node_categories = {}
+node_categories['CompositorNodeTree'] = [
+    'NODE_MT_category_CMP_INPUT', 
+    'NODE_MT_category_CMP_OUTPUT',
+    'NODE_MT_category_CMP_OP_COLOR', 
+    'NODE_MT_category_CMP_CONVERTOR', 
+    'NODE_MT_category_CMP_OP_FILTER', 
+    'NODE_MT_category_CMP_OP_VECTOR', 
+    'NODE_MT_category_CMP_MATTE', 
+    'NODE_MT_category_CMP_DISTORT', 
+    'NODE_MT_category_CMP_GROUP', 
+    'NODE_MT_category_CMP_LAYOUT', 
+]
+
+
+node_categories['ShaderNodeTree_old'] = [
+    'NODE_MT_category_SH_INPUT', 
+    'NODE_MT_category_SH_OUTPUT'
+    'NODE_MT_category_SH_OP_COLOR', 
+    'NODE_MT_category_SH_OP_VECTOR', 
+    'NODE_MT_category_SH_CONVERTOR', 
+    'NODE_MT_category_SH_GROUP', 
+    'NODE_MT_category_SH_LAYOUT', 
+]
+
+
+node_categories['ShaderNodeTree'] = [
+    'NODE_MT_category_SH_NEW_INPUT', 
+    'NODE_MT_category_SH_NEW_OUTPUT', 
+    'NODE_MT_category_SH_NEW_SHADER', 
+    'NODE_MT_category_SH_NEW_TEXTURE',
+    'NODE_MT_category_SH_NEW_OP_COLOR', 
+    'NODE_MT_category_SH_NEW_OP_VECTOR', 
+    'NODE_MT_category_SH_NEW_CONVERTOR', 
+    'NODE_MT_category_SH_NEW_SCRIPT', 
+    'NODE_MT_category_SH_NEW_GROUP', 
+    'NODE_MT_category_SH_NEW_LAYOUT', 
+]
+
+
+
+node_categories['TextureNodeTree'] = [
+    'NODE_MT_category_TEX_INPUT', 
+    'NODE_MT_category_TEX_OUTPUT', 
+    'NODE_MT_category_TEX_OP_COLOR', 
+    'NODE_MT_category_TEX_PATTERN', 
+    'NODE_MT_category_TEX_TEXTURE',
+    'NODE_MT_category_TEX_CONVERTOR', 
+    'NODE_MT_category_TEX_DISTORT', 
+    'NODE_MT_category_TEX_GROUP', 
+    'NODE_MT_category_TEX_LAYOUT', 
+]
+
+
+
+
 class NODE_MT_rRMB(bpy.types.Menu):
     """ Right-click Menu for the Nodes Editor """
     
@@ -1645,10 +1750,18 @@ class NODE_MT_rRMB(bpy.types.Menu):
 
     def draw(self, context):
         layout = self.layout
+
+        # Fix for mat/tex nodes when there's no mat/tex selected
+        if not context.space_data.id:
+            layout.label('Please select a Material, Texture or Nodetree', icon='INFO')
+
         selected = context.selected_nodes
         active = bpy.context.active_node
+        use_nodes = context.space_data.id.use_nodes
+        tree_type = context.space_data.tree_type
 
-        if is_a_node_selected():
+
+        if selected:
 
             layout.menu("NODE_MT_add")
 
@@ -1688,28 +1801,20 @@ class NODE_MT_rRMB(bpy.types.Menu):
             props = layout.operator("node.add_search", text="Search ...")
             props.use_transform = True
 
-            # FIXME: Boy is this ugly... should be saved in a dict at the start, not every redraw
-            # FIXME: Dies if use_nodes is not set in the scene
-            # FIXME: BI nodes don't work??
+            layout.separator()
 
-            # Generate the nodes categories
-            for name,value in inspect.getmembers(bpy.types, is_node_category):
-                print(name)
-                if name.find('_CMP_') > 0 and context.space_data.tree_type == 'CompositorNodeTree':
-                    layout.menu(name)
-                if name.find('_SH_NEW_') > 0 and context.space_data.tree_type == 'ShaderNodeTree':
-                    layout.menu(name)
-                if name.find('_TEX_') > 0 and context.space_data.tree_type == 'TextureNodeTree':
-                    layout.menu(name)
-                if ( name.find('_SH_',0,19) > 0 and context.space_data.tree_type == 'TextureNodeTree' 
-                                            and not context.scene.render.use_shading_nodes):
-                    layout.menu(name)
+            # Hacky fix for BI nodes
+            if tree_type == 'ShaderNodeTree' and not context.scene.render.use_shading_nodes:
+                tree_type = 'ShaderNodeTree_old'
 
+            for cat in node_categories[tree_type]:
+                layout.menu(cat)
 
             # SELECT
             layout.separator()
             layout.operator("node.select_all").action = 'TOGGLE'
             layout.menu("NODE_MT_rRMB_select", text="Select")
+
 
 
  
@@ -1733,40 +1838,6 @@ class NODE_MT_rRMB_select(bpy.types.Menu):
 
 
 
-def is_node_category(obj):
-    """ Check if a class is a node category """
-    index = str(obj).find('NODE_MT_category_')
-
-    if index < 0:
-        return False
-    else:
-        return True
-
-
-def is_a_node_selected():
-    """ Function to check if there's any node selected """
-
-    nodes = bpy.context.scene.node_tree.nodes
-    output = False
-
-    for node in nodes:
-        if node.select:
-            output = True 
-
-    return output
-
-
-def is_group_in_selected(selected_nodes):
-    """ Function to test if there's a group in the selected nodes """
-
-    groups = "CompositorNodeGroup", "ShaderNodeGroup", "TextureNodeGroup"
-    result = False
-
-    for node in selected_nodes:
-        if node.bl_idname in groups:
-            result = True
-
-    return result        
 
 
 #------------------- REGISTER ------------------------------     
