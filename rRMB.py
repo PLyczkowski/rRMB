@@ -1665,22 +1665,20 @@ class HEADER_MT_rRMB(bpy.types.Menu):
 
         layout.operator_context = 'INVOKE_DEFAULT'
 
-        layout.operator("screen.header_flip", icon="TRIA_UP")
-        layout.operator("screen.header_toggle_menus", icon="COLLAPSEMENU")
+        layout.operator("screen.header_flip")
+        layout.operator("screen.header_toggle_menus")
         layout.separator()
 
-        layout.operator("area.join_area", icon="X")
-        layout.operator_context = 'INVOKE_SCREEN'
-        layout.operator("screen.area_move", icon="X")
+        layout.operator("area.join_area")
 
         layout.operator_context = 'EXEC_DEFAULT'
-        layout.operator("screen.area_split", text="Split Horizontally", icon="SPLITSCREEN").direction="HORIZONTAL"
-        layout.operator("screen.area_split", text="Split Vertically", icon="SPLITSCREEN").direction="VERTICAL"
+        layout.operator("screen.area_split", text="Split Horizontally").direction="HORIZONTAL"
+        layout.operator("screen.area_split", text="Split Vertically").direction="VERTICAL"
 
         layout.operator_context = 'INVOKE_DEFAULT'
         layout.separator()
-        layout.operator("screen.area_dupli", icon="FULLSCREEN")
-        layout.operator("screen.screen_full_area", icon="FULLSCREEN_ENTER")
+        layout.operator("screen.area_dupli")
+        layout.operator("screen.screen_full_area")
    
 
 
