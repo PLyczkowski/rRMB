@@ -51,6 +51,7 @@ class draw_view3d_rRMB(bpy.types.Menu):
         #Menus in All Modes
         
         # layout.operator("view3d.rtest")
+        layout.operator_context = 'INVOKE_DEFAULT'
 
         layout.operator("view3d.cursor3d", text="Place 3d Cursor", icon="CURSOR")
         # layout.operator("view3d.rcursor3d", text="Place 3d Cursor", icon="CURSOR")
