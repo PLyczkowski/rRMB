@@ -19,7 +19,7 @@
 bl_info = {
     "name": "rRMB Menu",
     "author": "Paweł Łyczkowski, Diego Gangl",
-    "version": (0,6),
+    "version": (0,61),
     "blender": (2, 71, 0),
     "location": "View3D > RMB",
     "description": "Adds an RMB menu.",
@@ -43,23 +43,13 @@ class draw_view3d_rRMB(bpy.types.Menu):
         edit_object = context.edit_object
         layout = self.layout
         selected = context.selected_objects
-
-        #
-
-        # check_mouse_position()
         
         #Menus in All Modes
-        
-        # layout.operator("view3d.rtest")
+
         layout.operator_context = 'INVOKE_DEFAULT'
 
         layout.operator("view3d.cursor3d", text="Place 3d Cursor", icon="CURSOR")
-        # layout.operator("view3d.rcursor3d", text="Place 3d Cursor", icon="CURSOR")
         layout.menu("VIEW3D_MT_rmovecursor")
-
-        # layout.separator()
-
-        # layout.operator_menu_enum("object.mode_set", "mode", text="Change Mode") 
         
         #Mode Specific Menus
         
