@@ -933,10 +933,9 @@ class VIEW3D_MT_redit_mesh_normals(bpy.types.Menu):
         layout = self.layout
 
         # layout.label("Normals:")
+        layout.operator("mesh.flip_normals")
         layout.operator("mesh.normals_make_consistent", text="Normals Recalculate Outside").inside = False
         layout.operator("mesh.normals_make_consistent", text="Normals Recalculate Inside").inside = True
-
-        layout.operator("mesh.flip_normals")
 
         layout.separator()
 
