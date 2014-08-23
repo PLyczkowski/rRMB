@@ -1660,12 +1660,11 @@ class HEADER_MT_rRMB(bpy.types.Menu):
         layout.operator("screen.header_toggle_menus")
         layout.separator()
 
+        layout.operator("area.join_area")
+
         layout.operator_context = 'EXEC_DEFAULT'
         layout.operator("screen.area_split", text="Split Vertically").direction="VERTICAL"
         layout.operator("screen.area_split", text="Split Horizontally").direction="HORIZONTAL"
-
-        layout.operator_context = 'INVOKE_DEFAULT'
-        layout.operator("area.join_area")
 
         layout.operator_context = 'INVOKE_DEFAULT'
         layout.separator()
