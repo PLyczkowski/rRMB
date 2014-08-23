@@ -14,6 +14,8 @@
 #  along with this program; if not, write to the Free Software Foundation,
 #  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
+#  Join Area Operator code by: Cedric_Lepiller & DoubleZ & Lapineige
+#
 # ##### END GPL LICENSE BLOCK #####
 
 bl_info = {
@@ -1602,6 +1604,77 @@ class NODE_MT_rRMB_select(bpy.types.Menu):
         layout.operator("node.select_same_type")
 
 
+
+# =============================================================================
+#  HEADER MENU
+# =============================================================================
+
+class HEADER_OT_rRMB_Join(bpy.types.Operator):
+    """Join 2 areas, clic on the second area to join"""
+
+    bl_idname = "area.join_area"
+    bl_label = "Join Area"
+
+    min_x = bpy.props.IntProperty()
+    min_y = bpy.props.IntProperty()
+
+    def modal(self, context, event):
+        if event.type == 'LEFTMOUSE':
+            self.max_x = event.mouse_x
+            self.max_y = event.mouse_y
+
+            context.area.header_text_set()
+            bpy.ops.screen.area_join(min_x=self.min_x, min_y=self.min_y, max_x=self.max_x, max_y=self.max_y)
+            bpy.ops.screen.screen_full_area()
+            bpy.ops.screen.screen_full_area()
+
+            return {'FINISHED'}
+
+        return {'RUNNING_MODAL'}
+
+    def invoke(self, context, event):
+        self.min_x = event.mouse_x
+        self.min_y = event.mouse_y
+
+        context.area.header_text_set("Click on the editor to remove")
+        context.window_manager.modal_handler_add(self)
+
+
+        return {'RUNNING_MODAL'}
+
+
+
+class HEADER_MT_rRMB(bpy.types.Menu):
+    """ Header menu """
+
+    bl_label = "Header"
+    bl_idname = "HEADER_MT_rRMB"
+
+
+    def draw(self, context):
+        layout = self.layout
+
+        layout.operator_context = 'INVOKE_DEFAULT'
+
+        layout.operator("screen.header_flip")
+        layout.operator("screen.header_toggle_menus")
+        layout.separator()
+
+        layout.operator("area.join_area")
+
+        layout.operator_context = 'EXEC_DEFAULT'
+        layout.operator("screen.area_split", text="Split Horizontally").direction="HORIZONTAL"
+        layout.operator("screen.area_split", text="Split Vertically").direction="VERTICAL"
+
+        layout.operator_context = 'INVOKE_DEFAULT'
+        layout.separator()
+        layout.operator("screen.area_dupli")
+        layout.operator("screen.screen_full_area")
+   
+
+
+
+
 #------------------- REGISTER ------------------------------     
 
 
@@ -1630,6 +1703,12 @@ def register():
         kmi = km.keymap_items.new('wm.call_menu', 'ACTIONMOUSE', 'PRESS')
         kmi.properties.name = "NODE_MT_rRMB"
         addon_keymaps.append((km, kmi))
+
+        # Header Menu
+        km = kc.keymaps.new(name='Header')
+        kmi = km.keymap_items.new('wm.call_menu', 'ACTIONMOUSE', 'PRESS')
+        kmi.properties.name = "HEADER_MT_rRMB"
+        addon_keymaps.append((km, kmi))        
 
 def unregister():
     
