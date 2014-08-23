@@ -1610,7 +1610,7 @@ class NODE_MT_rRMB_select(bpy.types.Menu):
 # =============================================================================
 
 class HEADER_OT_rRMB_Join(bpy.types.Operator):
-    """Join 2 areas, clic on the second area to join"""
+    """Join 2 areas, click on the second area to join"""
 
     bl_idname = "area.join_area"
     bl_label = "Join Area"
@@ -1660,11 +1660,12 @@ class HEADER_MT_rRMB(bpy.types.Menu):
         layout.operator("screen.header_toggle_menus")
         layout.separator()
 
-        layout.operator("area.join_area")
-
         layout.operator_context = 'EXEC_DEFAULT'
-        layout.operator("screen.area_split", text="Split Horizontally").direction="HORIZONTAL"
         layout.operator("screen.area_split", text="Split Vertically").direction="VERTICAL"
+        layout.operator("screen.area_split", text="Split Horizontally").direction="HORIZONTAL"
+
+        layout.operator_context = 'INVOKE_DEFAULT'
+        layout.operator("area.join_area")
 
         layout.operator_context = 'INVOKE_DEFAULT'
         layout.separator()
