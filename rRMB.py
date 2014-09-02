@@ -1022,7 +1022,13 @@ class VIEW3D_MT_rmove_mesh_origin(bpy.types.Menu):
 
         layout.separator()
 
-        layout.operator("object.ralign_orientation_to_face")
+        if context.active_object.data.users == 1:
+
+            layout.operator("object.ralign_orientation_to_face")
+
+        else:
+
+            layout.operator("object.ralign_orientation_to_face_warning", text="Align Orientation To Face")
 
 class VIEW3D_MT_rmove_mesh_origin_nothing_selected(bpy.types.Menu):
 
@@ -1240,19 +1246,19 @@ class RAlignOrientationToFace(bpy.types.Operator):
 
         return {'FINISHED'}
 
-class MyDialog(bpy.types.Operator):
+class RAlignOrientationToFaceWarning(bpy.types.Operator):
 
-    bl_idname = "tools.mydialog"
-    bl_label = "My Dialog"
+    bl_idname = "object.ralign_orientation_to_face_warning"
+    bl_label = "You can't change the orientation of multi-user objects."
+    bl_options = {"UNDO", "INTERNAL"}
 
-    string_prop = bpy.props.StringProperty(name="String Prop")
+    #Trivia: Properties can be defined here in such a dialog. Example:
+    #string_prop = bpy.props.StringProperty(name="String Prop")
 
     def invoke(self, context, event):
         return context.window_manager.invoke_props_dialog(self)
 
     def execute(self, context):
-
-
 
         return {'FINISHED'}
 
