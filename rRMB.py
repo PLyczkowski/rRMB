@@ -79,6 +79,10 @@ class draw_view3d_rRMB(bpy.types.Menu):
 
                     #--- Mesh With Vertices Selected
 
+                    layout.menu("VIEW3D_MT_reditadd")
+
+                    layout.separator()
+
                     layout.menu("VIEW3D_MT_rcut")
 
                     layout.menu("VIEW3D_MT_rcreate")
@@ -265,6 +269,10 @@ class draw_view3d_rRMB(bpy.types.Menu):
                 # layout.operator("tools.mydialog")
 
                 layout.menu("VIEW3D_MT_select_object")
+                
+                layout.separator()
+
+                layout.menu("VIEW3D_MT_robjectadd")
                 
                 layout.separator()
                 
@@ -1261,6 +1269,68 @@ class RAlignOrientationToFaceWarning(bpy.types.Operator):
     def execute(self, context):
 
         return {'FINISHED'}
+
+class VIEW3D_MT_reditadd(bpy.types.Menu):
+    bl_context = "editmode"
+    bl_label = "Add"
+
+    def draw(self, context):
+        
+        layout = self.layout
+
+        layout.operator("mesh.primitive_plane_add", text="Plane", icon='MESH_PLANE')
+        layout.operator("mesh.primitive_cube_add", text="Cube", icon='MESH_CUBE')
+        layout.operator("mesh.primitive_circle_add", text="Circle", icon='MESH_CIRCLE')
+        layout.operator("mesh.primitive_uv_sphere_add", text="UV Sphere", icon='MESH_UVSPHERE')
+        layout.operator("mesh.primitive_ico_sphere_add", text="Ico Sphere", icon='MESH_ICOSPHERE')
+        layout.operator("mesh.primitive_cylinder_add", text="Cylinder", icon='MESH_CYLINDER')
+        layout.operator("mesh.primitive_cone_add", text="Cone", icon='MESH_CONE')
+        layout.operator("mesh.primitive_torus_add", text="Torus", icon='MESH_TORUS')
+
+        layout.operator("mesh.primitive_grid_add", text="Grid", icon='MESH_GRID')
+        layout.operator("mesh.primitive_monkey_add", text="Monkey", icon='MESH_MONKEY')
+
+class VIEW3D_MT_robjectadd(bpy.types.Menu):
+    bl_context = "editmode"
+    bl_label = "Add"
+
+    def draw(self, context):
+        
+        layout = self.layout
+
+        layout.operator_context = 'EXEC_REGION_WIN'
+
+        #layout.operator_menu_enum("object.mesh_add", "type", text="Mesh", icon='OUTLINER_OB_MESH')
+        layout.menu("INFO_MT_mesh_add", icon='OUTLINER_OB_MESH')
+
+        #layout.operator_menu_enum("object.curve_add", "type", text="Curve", icon='OUTLINER_OB_CURVE')
+        layout.menu("INFO_MT_curve_add", icon='OUTLINER_OB_CURVE')
+        #layout.operator_menu_enum("object.surface_add", "type", text="Surface", icon='OUTLINER_OB_SURFACE')
+        layout.menu("INFO_MT_surface_add", icon='OUTLINER_OB_SURFACE')
+        layout.menu("INFO_MT_metaball_add", text="Metaball", icon='OUTLINER_OB_META')
+        layout.operator("object.text_add", text="Text", icon='OUTLINER_OB_FONT')
+        layout.separator()
+
+        layout.menu("INFO_MT_armature_add", icon='OUTLINER_OB_ARMATURE')
+        layout.operator("object.add", text="Lattice", icon='OUTLINER_OB_LATTICE').type = 'LATTICE'
+        layout.operator_menu_enum("object.empty_add", "type", text="Empty", icon='OUTLINER_OB_EMPTY')
+        layout.separator()
+
+        layout.operator("object.speaker_add", text="Speaker", icon='OUTLINER_OB_SPEAKER')
+        layout.separator()
+
+        layout.operator("object.camera_add", text="Camera", icon='OUTLINER_OB_CAMERA')
+        layout.operator_menu_enum("object.lamp_add", "type", text="Lamp", icon='OUTLINER_OB_LAMP')
+        layout.separator()
+
+        layout.operator_menu_enum("object.effector_add", "type", text="Force Field", icon='OUTLINER_OB_EMPTY')
+        layout.separator()
+
+        if len(bpy.data.groups) > 10:
+            layout.operator_context = 'INVOKE_REGION_WIN'
+            layout.operator("object.group_instance_add", text="Group Instance...", icon='OUTLINER_OB_EMPTY')
+        else:
+            layout.operator_menu_enum("object.group_instance_add", "group", text="Group Instance", icon='OUTLINER_OB_EMPTY')
 
 
 #------------------- FUNCTIONS ------------------------------ 
