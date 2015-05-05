@@ -1764,27 +1764,35 @@ def register():
     kc = wm.keyconfigs.addon
     if kc:
 
-        #Direct Menu Call
+        #------------3d View
+
         km = kc.keymaps.new(name='3D View', space_type='VIEW_3D')
+
+        #Direct Menu Call
         kmi = km.keymap_items.new('wm.call_menu', 'ACTIONMOUSE', 'PRESS')
         kmi.properties.name = "VIEW3D_MT_rRMB"
-        addon_keymaps.append((km, kmi))
 
-        # Set Cursor
+        # Set Cursor 3d
         kmi = km.keymap_items.new('view3d.cursor3d', 'RIGHTMOUSE', 'PRESS', alt=True)
-        addon_keymaps.append((km, kmi))
+        addon_keymaps.append(km)
 
-        # Node Editor
+        #------------Node Editor
+
         km = kc.keymaps.new(name='Node Editor', space_type='NODE_EDITOR')
+
+        # Node RMB
         kmi = km.keymap_items.new('wm.call_menu', 'ACTIONMOUSE', 'PRESS')
         kmi.properties.name = "NODE_MT_rRMB"
-        addon_keymaps.append((km, kmi))
+        addon_keymaps.append(km)
+
+        #------------Header
+
+        km = kc.keymaps.new(name='Header')
 
         # Header Menu
-        km = kc.keymaps.new(name='Header')
         kmi = km.keymap_items.new('wm.call_menu', 'ACTIONMOUSE', 'PRESS')
         kmi.properties.name = "HEADER_MT_rRMB"
-        addon_keymaps.append((km, kmi))        
+        addon_keymaps.append(km)      
 
 def unregister():
     
@@ -1794,8 +1802,14 @@ def unregister():
     # bpy.app.handlers.load_post.remove(load_handler)
     
     wm = bpy.context.window_manager
-    for km, kmi in addon_keymaps:
-        km.keymap_items.remove(kmi)
+    
+    if wm.keyconfigs.addon:
+        for km in addon_keymaps:
+            for kmi in km.keymap_items:
+                km.keymap_items.remove(kmi)
+
+            wm.keyconfigs.addon.keymaps.remove(km)
+
     addon_keymaps.clear()
         
 if __name__ == "__main__":
