@@ -1769,11 +1769,11 @@ def register():
         km = kc.keymaps.new(name='3D View', space_type='VIEW_3D')
 
         #Direct Menu Call
-        kmi = km.keymap_items.new('wm.call_menu', 'ACTIONMOUSE', 'PRESS')
+        kmi = km.keymap_items.new('wm.call_menu', 'ACTIONMOUSE', 'CLICK')
         kmi.properties.name = "VIEW3D_MT_rRMB"
 
         # Set Cursor 3d
-        kmi = km.keymap_items.new('view3d.cursor3d', 'RIGHTMOUSE', 'PRESS', alt=True)
+        kmi = km.keymap_items.new('view3d.cursor3d', 'ACTIONMOUSE', 'CLICK', alt=True)
         addon_keymaps.append(km)
 
         #------------Node Editor
@@ -1781,7 +1781,7 @@ def register():
         km = kc.keymaps.new(name='Node Editor', space_type='NODE_EDITOR')
 
         # Node RMB
-        kmi = km.keymap_items.new('wm.call_menu', 'ACTIONMOUSE', 'PRESS')
+        kmi = km.keymap_items.new('wm.call_menu', 'ACTIONMOUSE', 'CLICK')
         kmi.properties.name = "NODE_MT_rRMB"
         addon_keymaps.append(km)
 
@@ -1790,7 +1790,7 @@ def register():
         km = kc.keymaps.new(name='Header')
 
         # Header Menu
-        kmi = km.keymap_items.new('wm.call_menu', 'ACTIONMOUSE', 'PRESS')
+        kmi = km.keymap_items.new('wm.call_menu', 'ACTIONMOUSE', 'CLICK')
         kmi.properties.name = "HEADER_MT_rRMB"
         addon_keymaps.append(km)      
 
