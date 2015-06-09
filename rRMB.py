@@ -1239,7 +1239,6 @@ class RAlignOrientationToSelection(bpy.types.Operator):
         bpy.ops.object.select_all(action='DESELECT')
         bpy.ops.object.empty_add(type='PLAIN_AXES', view_align=False, layers=(True, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False))
         empty = context.selected_objects
-        bpy.context.object.name = "r_temporary_empty"
         bpy.ops.transform.transform(mode='ALIGN', value=(0, 0, 0, 0), axis=(0, 0, 0), constraint_axis=(False, False, False), constraint_orientation='rOrientation', mirror=False, proportional='DISABLED', proportional_edit_falloff='SMOOTH', proportional_size=1)
 
         #Copy Rotation from empty
