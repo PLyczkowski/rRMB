@@ -21,7 +21,7 @@
 bl_info = {
     "name": "rRMB Menu",
     "author": "Paweł Łyczkowski, Diego Gangl",
-    "version": (0,61),
+    "version": (0,62),
     "blender": (2, 71, 0),
     "location": "View3D > RMB",
     "description": "Adds an RMB menu.",
@@ -1032,11 +1032,11 @@ class VIEW3D_MT_rmove_mesh_origin(bpy.types.Menu):
 
         if context.active_object.data.users == 1:
 
-            layout.operator("object.ralign_orientation_to_face")
+            layout.operator("object.ralign_orientation_to_selection")
 
         else:
 
-            layout.operator("object.ralign_orientation_to_face_warning", text="Align Orientation To Face")
+            layout.operator("object.ralign_orientation_to_selection_warning", text="Align Orientation To Selection")
 
 class VIEW3D_MT_rmove_mesh_origin_nothing_selected(bpy.types.Menu):
 
@@ -1195,11 +1195,11 @@ class RSeparate(bpy.types.Operator):
 
         return {'FINISHED'}
 
-class RAlignOrientationToFace(bpy.types.Operator):
+class RAlignOrientationToSelection(bpy.types.Operator):
     '''Tooltip'''
-    bl_description = "Align object's orientation to the selected face."
-    bl_idname = "object.ralign_orientation_to_face"
-    bl_label = "Align Orientation To Face"
+    bl_description = "Align object's orientation to the selected elements."
+    bl_idname = "object.ralign_orientation_to_selection"
+    bl_label = "Align Orientation To Selection"
     bl_options = {'REGISTER', 'UNDO'}
 
     @classmethod
@@ -1223,12 +1223,23 @@ class RAlignOrientationToFace(bpy.types.Operator):
         bpy.ops.transform.create_orientation(name="rOrientation", use=True, overwrite=True)
         bpy.ops.view3d.snap_cursor_to_selected()
 
+        #Exit to Object Mode
         bpy.ops.object.editmode_toggle()
+
+        #1st Layer visibility
+        first_layer_was_off = False
+
+        if bpy.context.scene.layers[0] != True:
+
+            first_layer_was_off = True
+            bpy.context.scene.layers[0] = True
+
 
         #Add empty aligned to the orientation
         bpy.ops.object.select_all(action='DESELECT')
         bpy.ops.object.empty_add(type='PLAIN_AXES', view_align=False, layers=(True, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False))
         empty = context.selected_objects
+        bpy.context.object.name = "r_temporary_empty"
         bpy.ops.transform.transform(mode='ALIGN', value=(0, 0, 0, 0), axis=(0, 0, 0), constraint_axis=(False, False, False), constraint_orientation='rOrientation', mirror=False, proportional='DISABLED', proportional_edit_falloff='SMOOTH', proportional_size=1)
 
         #Copy Rotation from empty
@@ -1239,7 +1250,7 @@ class RAlignOrientationToFace(bpy.types.Operator):
         bpy.ops.object.select_all(action='DESELECT')
         for obj in empty:
             obj.select = True
-        bpy.ops.object.delete(use_global=False)
+        bpy.ops.object.delete()
 
         #Restore state
         bpy.ops.object.select_all(action='DESELECT')
@@ -1250,13 +1261,17 @@ class RAlignOrientationToFace(bpy.types.Operator):
         context.space_data.cursor_location.y = storeCursorY
         context.space_data.cursor_location.z = storeCursorZ
 
+        if first_layer_was_off:
+
+            bpy.context.scene.layers[0] = False
+
         bpy.ops.object.editmode_toggle()
 
         return {'FINISHED'}
 
-class RAlignOrientationToFaceWarning(bpy.types.Operator):
+class RAlignOrientationToSelectionWarning(bpy.types.Operator):
 
-    bl_idname = "object.ralign_orientation_to_face_warning"
+    bl_idname = "object.ralign_orientation_to_selection_warning"
     bl_label = "You can't change the orientation of multi-user objects."
     bl_options = {"UNDO", "INTERNAL"}
 
@@ -1374,7 +1389,6 @@ def SetLocalTransformRotation(context):
 
                     #Align the rotation of the selected object with the rotation of the active object
                     bpy.ops.transform.transform(mode='ALIGN')
-                    
                     
                     #Store the rotation of the selected object after it has been rotated
                     rotation_after = i.matrix_world.to_quaternion()
