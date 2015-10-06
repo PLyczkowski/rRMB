@@ -31,6 +31,7 @@ bl_info = {
 
 import bpy
 from bpy.app.handlers import persistent
+from bpy.props import BoolProperty
 
 import inspect
 
@@ -1762,7 +1763,75 @@ class HEADER_MT_rRMB(bpy.types.Menu):
    
 
 
+# =============================================================================
+#  USER PREFERENCES
+# =============================================================================
 
+def update_Prefs(self, context):
+    wm = bpy.context.window_manager
+    
+    if wm.keyconfigs.addon:
+        for km in addon_keymaps:
+            for kmi in km.keymap_items:
+                km.keymap_items.remove(kmi)
+
+            wm.keyconfigs.addon.keymaps.remove(km)
+
+    addon_keymaps.clear()
+    
+    kc = wm.keyconfigs.addon
+    if kc:
+
+        #------------3d View
+        if self.use_3D_View_prop:
+            km = kc.keymaps.new(name='3D View', space_type='VIEW_3D')
+
+            #Direct Menu Call
+            kmi = km.keymap_items.new('wm.call_menu', 'ACTIONMOUSE', 'PRESS')
+            kmi.properties.name = "VIEW3D_MT_rRMB"
+
+            # Set Cursor 3d
+            kmi = km.keymap_items.new('view3d.cursor3d', 'RIGHTMOUSE', 'PRESS', alt=True)
+            addon_keymaps.append(km)
+
+        #------------Node Editor
+        if self.use_Node_Editor_prop == True:
+            km = kc.keymaps.new(name='Node Editor', space_type='NODE_EDITOR')
+
+            # Node RMB
+            if self.Node_Editor_switch_buttons_prop:
+                kmi = km.keymap_items.new('wm.call_menu', 'RIGHTMOUSE', 'PRESS')
+            else:
+                kmi = km.keymap_items.new('wm.call_menu', 'ACTIONMOUSE', 'PRESS')
+            kmi.properties.name = "NODE_MT_rRMB"
+            addon_keymaps.append(km)
+
+        #------------Header
+        if self.use_in_Header_prop:
+            km = kc.keymaps.new(name='Header')
+
+            # Header Menu
+            kmi = km.keymap_items.new('wm.call_menu', 'ACTIONMOUSE', 'PRESS')
+            kmi.properties.name = "HEADER_MT_rRMB"
+            addon_keymaps.append(km)
+
+class rRMB_User_Prefs(bpy.types.AddonPreferences):
+    bl_idname = __name__
+    
+    use_3D_View_prop = BoolProperty(name="3D View", description="Use Addon in 3D Viewport", default=True, update=update_Prefs)
+    use_Node_Editor_prop = BoolProperty(name="Node Editor", description="Use Addon in Node Editor", default=True, update=update_Prefs)
+    Node_Editor_switch_buttons_prop = BoolProperty(name="Inverted buttons in Node Editor", description="Switch mouse buttons in Node Editor", default=False, update=update_Prefs)
+    use_in_Header_prop = BoolProperty(name="Header", description="Use Addon in Editor Headers", default=True, update=update_Prefs)
+
+    def draw(self, context):
+        layout = self.layout
+        col = layout.column()
+        
+        row = col.row(align=True)
+        row.prop(self, "use_3D_View_prop")
+        row.prop(self, "use_Node_Editor_prop")
+        row.prop(self, "Node_Editor_switch_buttons_prop")
+        row.prop(self, "use_in_Header_prop")
 
 #------------------- REGISTER ------------------------------     
 
