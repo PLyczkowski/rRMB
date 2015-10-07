@@ -21,7 +21,7 @@
 bl_info = {
     "name": "rRMB Menu",
     "author": "Paweł Łyczkowski, Diego Gangl",
-    "version": (0,62),
+    "version": (0,63),
     "blender": (2, 71, 0),
     "location": "View3D > RMB",
     "description": "Adds an RMB menu.",
@@ -1693,7 +1693,28 @@ class NODE_MT_rRMB_select(bpy.types.Menu):
         layout.operator("node.select_linked_to")
         layout.operator("node.select_same_type")
 
+# =============================================================================
+#  TEXT EDITOR
+# =============================================================================
 
+def rRMB_Text_Editor_append(self, context):
+    layout = self.layout
+    
+    layout.operator("text.comment", icon="NONE", text="Comment")
+    layout.operator("text.uncomment", icon="NONE", text="Uncomment")
+    #layout.separator()
+    #layout.operator("text.convert_whitespace", type='SPACES', icon="NONE", text="Convert whitespaces to Spaces")
+    #layout.operator("text.convert_whitespace", type='TABS', icon="NONE", text="Convert whitespaces to Tabs")
+
+def rRMB_Text_Editor_prepend(self, context):
+    layout = self.layout
+    
+    layout.separator()
+    layout.operator("text.autocomplete", icon="NONE", text="Text Auto Complete")
+    layout.separator()
+    layout.operator("text.select_all", icon="NONE", text="Select All")
+    layout.operator("text.select_line", icon="NONE", text="Select Line")
+    layout.separator()
 
 # =============================================================================
 #  HEADER MENU
@@ -1768,6 +1789,10 @@ class HEADER_MT_rRMB(bpy.types.Menu):
 # =============================================================================
 
 def update_Prefs(self, context):
+    
+    bpy.types.TEXT_MT_toolbox.remove(rRMB_Text_Editor_append)
+    bpy.types.TEXT_MT_toolbox.remove(rRMB_Text_Editor_prepend)
+    
     wm = bpy.context.window_manager
     
     if wm.keyconfigs.addon:
@@ -1780,6 +1805,7 @@ def update_Prefs(self, context):
     addon_keymaps.clear()
     
     kc = wm.keyconfigs.addon
+    
     if kc:
 
         #------------3d View
@@ -1795,7 +1821,7 @@ def update_Prefs(self, context):
             addon_keymaps.append(km)
 
         #------------Node Editor
-        if self.use_Node_Editor_prop == True:
+        if self.use_Node_Editor_prop:
             km = kc.keymaps.new(name='Node Editor', space_type='NODE_EDITOR')
 
             # Node RMB
@@ -1806,7 +1832,13 @@ def update_Prefs(self, context):
             kmi.properties.name = "NODE_MT_rRMB"
             addon_keymaps.append(km)
 
+        #------------Text Editor
+        if self.use_in_Text_Editor_prop:
+            bpy.types.TEXT_MT_toolbox.append(rRMB_Text_Editor_append)
+            bpy.types.TEXT_MT_toolbox.prepend(rRMB_Text_Editor_prepend)
+        
         #------------Header
+        print("Hi!")
         if self.use_in_Header_prop:
             km = kc.keymaps.new(name='Header')
 
@@ -1822,25 +1854,29 @@ class rRMB_User_Prefs(bpy.types.AddonPreferences):
     use_Node_Editor_prop = BoolProperty(name="Node Editor", description="Use Addon in Node Editor", default=True, update=update_Prefs)
     Node_Editor_switch_buttons_prop = BoolProperty(name="Inverted buttons in Node Editor", description="Switch mouse buttons in Node Editor", default=False, update=update_Prefs)
     use_in_Header_prop = BoolProperty(name="Header", description="Use Addon in Editor Headers", default=True, update=update_Prefs)
+    use_in_Text_Editor_prop =  BoolProperty(name="Text Editor", description="Use Addon in Text Editor", default=True, update=update_Prefs)
 
     def draw(self, context):
         layout = self.layout
         col = layout.column()
         
-        row = col.row(align=True)
-        row.prop(self, "use_3D_View_prop")
+        col.prop(self, "use_3D_View_prop")
+        row = col.row(align=False)
         row.prop(self, "use_Node_Editor_prop")
         row.prop(self, "Node_Editor_switch_buttons_prop")
-        row.prop(self, "use_in_Header_prop")
+        col.prop(self, "use_in_Text_Editor_prop")
+        col.prop(self, "use_in_Header_prop")
 
-#------------------- REGISTER ------------------------------     
-
+#------------------- REGISTER ------------------------------   
 
 addon_keymaps = []
 
 def register():
     
     bpy.utils.register_module(__name__)
+    
+    bpy.types.TEXT_MT_toolbox.append(rRMB_Text_Editor_append)
+    bpy.types.TEXT_MT_toolbox.prepend(rRMB_Text_Editor_prepend)
     
     wm = bpy.context.window_manager
     kc = wm.keyconfigs.addon
@@ -1879,6 +1915,9 @@ def register():
 def unregister():
     
     bpy.utils.unregister_module(__name__)
+    
+    bpy.types.TEXT_MT_toolbox.remove(rRMB_Text_Editor_append)
+    bpy.types.TEXT_MT_toolbox.remove(rRMB_Text_Editor_prepend)
 
     # bpy.app.handlers.scene_update_post.remove(sceneupdate_handler)
     # bpy.app.handlers.load_post.remove(load_handler)
