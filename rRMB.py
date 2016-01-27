@@ -1035,6 +1035,10 @@ class VIEW3D_MT_rmove_mesh_origin(bpy.types.Menu):
 
             layout.operator("object.ralign_orientation_to_selection")
 
+            layout.separator()
+
+            layout.operator("object.ralign_and_move_origin_to_selection")
+
         else:
 
             layout.operator("object.ralign_orientation_to_selection_warning", text="Align Orientation To Selection")
@@ -1093,6 +1097,24 @@ class RMoveMeshOriginToSelection(bpy.types.Operator):
         for obj in selected:
             obj.select = True
         bpy.ops.object.editmode_toggle()
+
+        return {'FINISHED'}
+
+class RAlignAndMoveOriginToSelection(bpy.types.Operator):
+    '''Tooltip'''
+    bl_description = "Align Orientation and Move Origin to Selection."
+    bl_idname = "object.ralign_and_move_origin_to_selection"
+    bl_label = "Align Orientation and Move Origin to Selection"
+
+    @classmethod
+    def poll(cls, context):
+
+        return context.active_object is not None
+
+    def execute(self, context):
+        
+        bpy.ops.object.rmove_mesh_origin_to_selection()
+        bpy.ops.object.ralign_orientation_to_selection()
 
         return {'FINISHED'}
 
